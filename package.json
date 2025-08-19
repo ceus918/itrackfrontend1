@@ -9,7 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.11.0",
     "cookie": "^1.0.2",
-    "eventemitter3": "^5.0.1",
+    "eventemitter3": "5.0.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "react": "18.2.0",
@@ -18,7 +18,7 @@
     "react-router": "^6.21.3",
     "react-router-dom": "^6.21.3",
     "react-scripts": "^5.0.1",
-    "recharts": "^3.1.2",
+    "recharts": "^2.12.7",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
