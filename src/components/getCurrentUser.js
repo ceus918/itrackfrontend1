@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export async function getCurrentUser() {
   try {
-    const res = await axios.get("http://localhost:8000/api/checkAuth", { withCredentials: true });
+  const res = await axios.get("https://itrack-web-backend.onrender.com/api/checkAuth", { withCredentials: true });
     if (res.data.authenticated) {
       return res.data.user;
     }

@@ -32,7 +32,7 @@ const DriverAllocation = () => {
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers", { withCredentials: true })
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
@@ -43,7 +43,7 @@ const DriverAllocation = () => {
   }, []);
 
   const fetchAllocations = () => {
-    axios.get("http://localhost:8000/api/getAllocation", { withCredentials: true })
+  axios.get("https://itrack-web-backend.onrender.com/api/getAllocation", { withCredentials: true })
       .then((res) => setAllocations(res.data))
       .catch((err) => console.log(err));
   };
@@ -55,7 +55,7 @@ const DriverAllocation = () => {
       return;
     }
 
-    axios.post("http://localhost:8000/api/createAllocation", newAllocation, { withCredentials: true })
+  axios.post("https://itrack-web-backend.onrender.com/api/createAllocation", newAllocation, { withCredentials: true })
       .then(() => {
         fetchAllocations();
         setNewAllocation({
@@ -72,7 +72,7 @@ const DriverAllocation = () => {
   };
 
   const handleUpdate = (id) => {
-    axios.put(`http://localhost:8000/api/updateAllocation/${id}`, editAllocation, { withCredentials: true })
+  axios.put(`https://itrack-web-backend.onrender.com/api/updateAllocation/${id}`, editAllocation, { withCredentials: true })
       .then(() => {
         fetchAllocations();
         setEditAllocation(null);
@@ -81,7 +81,7 @@ const DriverAllocation = () => {
   };
 
   const handleDelete = (id) => {
-    axios.delete(`http://localhost:8000/api/deleteAllocation/${id}`, { withCredentials: true })
+  axios.delete(`https://itrack-web-backend.onrender.com/api/deleteAllocation/${id}`, { withCredentials: true })
       .then(() => fetchAllocations())
       .catch((err) => console.log(err));
   };
@@ -94,7 +94,7 @@ useEffect(() => {
 }, []);
 
 const fetchDrivers = () => {
-  axios.get("http://localhost:8000/api/getUsers", { withCredentials: true })
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
     .then((res) => {
       const driverList = res.data.filter(user => user.role === "Driver");
       setDrivers(driverList);

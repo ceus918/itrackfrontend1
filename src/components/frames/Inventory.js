@@ -33,7 +33,7 @@ const [fullUser, setFullUser] = useState(null);
       setUserRole(user ? user.role : null);
       setCurrentUser(user);
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers")
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
@@ -44,7 +44,7 @@ const [fullUser, setFullUser] = useState(null);
   }, []);
 
   const fetchStock = () => {
-    axios.get("http://localhost:8000/api/getStock")
+  axios.get("https://itrack-web-backend.onrender.com/api/getStock")
       .then((response) => {
         setStock(response.data);
       })
@@ -58,7 +58,7 @@ const [fullUser, setFullUser] = useState(null);
       return;
     }
   
-    axios.post("http://localhost:8000/api/createStock", newStock)
+  axios.post("https://itrack-web-backend.onrender.com/api/createStock", newStock)
       .then(() => {
         fetchStock();
         setNewStock({ unitName: '', unitId: '', bodyColor: '', variation: '', quantity: 1 }); // Reset quantity to 1

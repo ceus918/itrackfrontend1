@@ -6,7 +6,7 @@ const AuditTrailTab = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/audit-trail')
+  axios.get('https://itrack-web-backend.onrender.com/api/audit-trail')
       .then(res => {
         setLogs(res.data);
         setLoading(false);

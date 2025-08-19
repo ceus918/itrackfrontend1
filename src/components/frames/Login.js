@@ -24,7 +24,7 @@ const Login = () => {
 
   useEffect(() => {
 
-    axios.get("http://localhost:8000/api/getUsers")
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
       .then((res) => setUsers(res.data))
       .catch((err) => {
         console.log(err);
@@ -33,7 +33,7 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
-  axios.post("http://localhost:8000/api/login", loginInfo, {
+  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
     withCredentials: true
   })
     .then((res) => {
@@ -59,7 +59,7 @@ const Login = () => {
     e.preventDefault();
     setForgotMessage('');
 
-    axios.post(`http://localhost:8000/api/forgot-password`, { email: forgotEmail })
+  axios.post(`https://itrack-web-backend.onrender.com/api/forgot-password`, { email: forgotEmail })
 
 
       .then((res) => {
