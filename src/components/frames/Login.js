@@ -33,9 +33,9 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
-  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
+  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo /*, {
     withCredentials: true
-  })
+  }*/)
     .then((res) => {
       if (res.data.success) {
         navigate('/dashboard');

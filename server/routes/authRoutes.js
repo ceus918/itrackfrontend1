@@ -39,11 +39,13 @@ const { forgotPassword, resetPassword } = require('../controllers/userController
 
 // Login route
 router.post('/login', async (req, res) => {
+  
   const { email, password } = req.body;
   const user = await User.findOne({ email, password });
 
   if (user) {
     req.session.user = { id: user._id, name: user.name, email: user.email, role: user.role };
+    console.log('Session after login:', req.session); // Log session after setting user
     res.json({ success: true });
   } else {
     res.status(401).json({ success: false, message: 'Invalid credentials' });
