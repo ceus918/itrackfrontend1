@@ -14,3 +14,9 @@ router.post('/send-reset-links', userController.sendResetLinksToAll);
 module.exports = router;
 
 
+console.log("✅ userRoutes loaded");
+
+router.post('/login', (req, res) => {
+  console.log("🚀 /api/login hit");
+  res.json({ success: true, message: "Login works" });
+});

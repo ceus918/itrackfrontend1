@@ -44,11 +44,14 @@ const Login = () => {
           navigate('/dashboard');
         } else {
           setErrorMessage(res.data.message || 'Invalid email or password.');
+          console.log("Login failed:", res.data.message);
         }
       })
       .catch((err) => {
         console.error(err);  // ✅ LOG errors for debugging
         setErrorMessage('Invalid email or password.');
+        console.log("Login failed2:", res.data.message);
+        
       });
   };
 
