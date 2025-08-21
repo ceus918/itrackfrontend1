@@ -25,9 +25,9 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-
-  // axios.get("http://localhost:8000/api/getUsers")
-  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+    axios
+      // .get("http://localhost:8000/api/getUsers")
+      .get("https://itrack-web-backend.onrender.com/api/getUsers")
       .then((res) => setUsers(res.data))
       .catch((err) => {
         console.log(err);
@@ -35,30 +35,28 @@ const Login = () => {
       });
   }, []);
 
-  const handleLogin = () => {
-    // axios.post("http://localhost:8000/api/login", loginInfo)
-     axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
-      .then((res) => {
-         
-        if (res.data.success) {
-          setUser(res.data.user); // Set user in context
-          navigate('/dashboard');
-          console.log("LOGIN RESPONSE:", res.data);
-        } else {
-          setErrorMessage(res.data.message || 'Invalid email or password.');
-          console.log("Login failed:", res.data.message);
-          console.log("LOGIN RESPONSE2:", res.data);
-        }
-      })
-      .catch((err) => {
-        console.error(err);  // ✅ LOG errors for debugging
-        setErrorMessage('Invalid email or password.');
-     
-        
-      });
+  const handleLogin = async () => {
+    try {
+      // const res = await axios.post("http://localhost:8000/api/login", loginInfo);
+      const res = await axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo);
+
+      console.log("LOGIN RESPONSE:", res.data);
+
+      if (res.data.success) {
+        // If backend doesn’t send user, at least store email for context
+        setUser(res.data.user || { email: loginInfo.email });
+
+        // ✅ Navigate immediately
+        navigate("/dashboard");
+      } else {
+        setErrorMessage(res.data.message || "Invalid email or password.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Invalid email or password.");
+    }
   };
 
-  
   const handleSubmit = (e) => {
     e.preventDefault();
     handleLogin();
