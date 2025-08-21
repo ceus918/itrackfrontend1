@@ -41,16 +41,10 @@ const Login = () => {
       console.log("LOGIN RESPONSE:", res.data);
 
       if (res.data.success) {
-        // Temporarily set user with minimal info until backend includes role
-        setUser({
-          email: loginInfo.email,
-          role: "Admin" // <-- hardcode role for now to test dashboard
-        });
-
-        navigate('/dashboard'); // go to dashboard
+        setUser(res.data.user);  // use backend user object
+        navigate('/dashboard');
       } else {
         setErrorMessage(res.data.message || 'Invalid email or password.');
-        console.log("Login failed:", res.data.message);
       }
     })
     .catch((err) => {
@@ -58,6 +52,7 @@ const Login = () => {
       setErrorMessage('Invalid email or password.');
     });
 };
+
 
 
   const handleSubmit = (e) => {
