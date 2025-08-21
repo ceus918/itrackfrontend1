@@ -43,6 +43,7 @@ const Login = () => {
       console.log("LOGIN RESPONSE:", res.data);
 
       if (res.data.success) {
+         console.log("User object:", res.data.user); // ✅ LOG user object specifically
         // If backend doesn’t send user, at least store email for context
         setUser(res.data.user || { email: loginInfo.email });
 
