@@ -36,23 +36,26 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
-  axios
-    .post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
+  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
     .then((res) => {
-      console.log("LOGIN RESPONSE:", res.data); // log full response
+      console.log("LOGIN RESPONSE:", res.data);
 
-      if (res.data.success && res.data.user) {
-        console.log("User object:", res.data.user);
-        setUser(res.data.user);
-        navigate("/dashboard");
+      if (res.data.success) {
+        // Temporarily set user with minimal info until backend includes role
+        setUser({
+          email: loginInfo.email,
+          role: "Admin" // <-- hardcode role for now to test dashboard
+        });
+
+        navigate('/dashboard'); // go to dashboard
       } else {
+        setErrorMessage(res.data.message || 'Invalid email or password.');
         console.log("Login failed:", res.data.message);
-        setErrorMessage(res.data.message || "Invalid email or password.");
       }
     })
     .catch((err) => {
       console.error(err);
-      setErrorMessage("Invalid email or password.");
+      setErrorMessage('Invalid email or password.');
     });
 };
 
