@@ -35,28 +35,27 @@ const Login = () => {
       });
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      // const res = await axios.post("http://localhost:8000/api/login", loginInfo);
-      const res = await axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo);
+  const handleLogin = () => {
+  axios
+    .post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
+    .then((res) => {
+      console.log("LOGIN RESPONSE:", res.data); // log full response
 
-      console.log("LOGIN RESPONSE:", res.data);
-
-      if (res.data.success) {
-         console.log("User object:", res.data.user); // ✅ LOG user object specifically
-        // If backend doesn’t send user, at least store email for context
-        setUser(res.data.user || { email: loginInfo.email });
-
-        // ✅ Navigate immediately
+      if (res.data.success && res.data.user) {
+        console.log("User object:", res.data.user);
+        setUser(res.data.user);
         navigate("/dashboard");
       } else {
+        console.log("Login failed:", res.data.message);
         setErrorMessage(res.data.message || "Invalid email or password.");
       }
-    } catch (err) {
+    })
+    .catch((err) => {
       console.error(err);
       setErrorMessage("Invalid email or password.");
-    }
-  };
+    });
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
