@@ -29,6 +29,9 @@ require('dotenv').config();
 // })
 
 
+
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -38,7 +41,7 @@ const userRoutes = require('./routes/userRoutes');
 const servicerequestRoutes = require('./routes/servicerequestRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const driverallocationRoutes = require('./routes/driverallocationRoutes');
-
+// const testdriveRoutes = require('./routes/testdriveRoutes');
 const durationRoutes = require('./routes/durationRoutes');
 const auditTrailRoutes = require('./routes/auditTrailRoutes');
 
@@ -46,7 +49,10 @@ const app = express();
 
 // Enable CORS with credentials
 app.use(cors({
-  origin: 'http://localhost:3000', // React frontend
+  origin: [
+    'http://localhost:3000',
+    'https://itrackfrontend1.vercel.app'
+  ], // React frontend (local and Vercel)
   credentials: true
 }));
 
@@ -76,10 +82,13 @@ app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', servicerequestRoutes);
 app.use('/api', inventoryRoutes);
+// app.use('/api', testdriveRoutes);
 app.use('/api', driverallocationRoutes);
-app.use('/api', durationRoutes); // Route: /api/calculate-duration
-app.use('/api/audit-trail', auditTrailRoutes); // Route: /api/audit-trail
-// Start server
-app.listen(8000, () => {
-  console.log("Server is running ✅");
+app.use('/api', durationRoutes);
+app.use('/api/audit-trail', auditTrailRoutes);
+
+// ✅ Start server (only once!)
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} ✅`);
 });

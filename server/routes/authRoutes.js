@@ -44,9 +44,9 @@ router.post('/login', async (req, res) => {
   const user = await User.findOne({ email, password });
 
   if (user) {
-    req.session.user = { id: user._id, name: user.name, email: user.email, role: user.role };
-    console.log('Session after login:', req.session); // Log session after setting user
-    res.json({ success: true });
+    // req.session.user = { id: user._id, name: user.name, email: user.email, role: user.role };
+    // console.log('Session after login:', req.session); // Log session after setting user
+    res.json({ success: true, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } else {
     res.status(401).json({ success: false, message: 'Invalid credentials' });
   }
@@ -61,13 +61,13 @@ router.post('/logout', (req, res) => {
 });
 
 // Auth check route
-router.get('/checkAuth', (req, res) => {
-  if (req.session.user) {
-    res.json({ authenticated: true, user: req.session.user });
-  } else {
-    res.json({ authenticated: false });
-  }
-});
+// router.get('/checkAuth', (req, res) => {
+//   if (req.session.user) {
+//     res.json({ authenticated: true, user: req.session.user });
+//   } else {
+//     res.json({ authenticated: false });
+//   }
+// });
 
 // Password reset routes
 router.post('/forgot-password', forgotPassword);

@@ -7,13 +7,15 @@
 //cd server
 //nodemon server.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { UserContext } from '../UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../css/Login.css';
 import Logo from '../icons/I-track logo.png';
 
 const Login = () => {
+  const { setUser } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
@@ -24,6 +26,7 @@ const Login = () => {
 
   useEffect(() => {
 
+  // axios.get("http://localhost:8000/api/getUsers")
   axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
       .then((res) => setUsers(res.data))
       .catch((err) => {
@@ -33,21 +36,21 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
-  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo /*, {
-    withCredentials: true
-  }*/)
-    .then((res) => {
-      if (res.data.success) {
-        navigate('/dashboard');
-      } else {
-        setErrorMessage(res.data.message || 'Invalid email or password.');
-      }
-    })
-    .catch((err) => {
-      console.error(err);  // ✅ LOG errors for debugging
-      setErrorMessage('Invalid email or password.');
-    });
-};
+    // axios.post("http://localhost:8000/api/login", loginInfo)
+     axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
+      .then((res) => {
+        if (res.data.success) {
+          setUser(res.data.user); // Set user in context
+          navigate('/dashboard');
+        } else {
+          setErrorMessage(res.data.message || 'Invalid email or password.');
+        }
+      })
+      .catch((err) => {
+        console.error(err);  // ✅ LOG errors for debugging
+        setErrorMessage('Invalid email or password.');
+      });
+  };
 
   
   const handleSubmit = (e) => {
