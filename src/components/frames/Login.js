@@ -39,6 +39,7 @@ const Login = () => {
     // axios.post("http://localhost:8000/api/login", loginInfo)
      axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
       .then((res) => {
+         console.log("LOGIN RESPONSE:", res.data);
         if (res.data.success) {
           setUser(res.data.user); // Set user in context
           navigate('/dashboard');
@@ -50,7 +51,7 @@ const Login = () => {
       .catch((err) => {
         console.error(err);  // ✅ LOG errors for debugging
         setErrorMessage('Invalid email or password.');
-        console.log("Login failed2:", res.data.message);
+     
         
       });
   };
