@@ -1,7 +1,13 @@
 // middleware/authMiddleware.js
-// Stateless version: always allow (no session, no authentication)
-// For real security, implement token-based authentication here
+// module.exports = function requireAuth(req, res, next) {
+//   if (req.session && req.session.user && req.session.user.name) {
+//     return next();
+//   }
+//   return res.status(401).json({ error: 'Authentication required' });
+// };
+
+// Stateless version: always allow (replace with token check for real security)
 module.exports = function requireAuth(req, res, next) {
-  // Allow all requests (no session, no user check)
+  // TODO: Add token-based authentication here
   return next();
 };
