@@ -1,44 +1,36 @@
-import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loading state
+  const [loading, setLoading] = useState(true);
 
+  const login = (userData) => setUser(userData);
+  const logout = async () => {
+    try {
+      await axios.post(
+        'https://itrack-web-backend.onrender.com/api/logout',
+        {},
+        { withCredentials: true }
+      );
+      setUser(null);
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
+
+  // Check session on mount
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await axios.get("https://itrack-web-backend.onrender.com/api/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    axios
+      .get('https://itrack-web-backend.onrender.com/api/session', { withCredentials: true })
+      .then((res) => {
+        if (res.data.user) setUser(res.data.user);
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
-
-  const login = (userData, token) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", token);
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-  };
 
   return (
     <UserContext.Provider value={{ user, login, logout, loading }}>

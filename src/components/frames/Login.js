@@ -43,30 +43,24 @@ const Login = () => {
 
 
 
-  const handleLogin = async () => {
-  console.log("Logging in with", loginInfo);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
 
-  try {
-    const res = await axios.post(
-      "https://itrack-web-backend.onrender.com/api/login",
-      { email: loginInfo.email, password: loginInfo.password },
-      { withCredentials: true } // ✅ so cookies/session stick
-    );
+    try {
+      const res = await axios.post(
+        'https://itrack-web-backend.onrender.com/api/login',
+        loginInfo,
+        { withCredentials: true }
+      );
 
-    // Save token (optional, depending on backend)
-    localStorage.setItem("token", res.data.token);
-
-    // ✅ Use context login instead of setUser
-    login(res.data.user);
-
-    // Navigate
-    navigate("/dashboard");
-  } catch (e) {
-    console.error("Login failed", e.response?.data || e.message);
-    setErrorMessage("Invalid email or password");
-  }
-};
-
+      login(res.data.user); // set user in context
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      setErrorMessage('Invalid email or password');
+    }
+  };
 
 
 

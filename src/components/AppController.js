@@ -12,12 +12,7 @@ import Reports from "./frames/Reports"
 import ResetPassword from "./frames/ResetPassword"
 import SendResetLinks from "./frames/SendResetLinks"
 import ProtectedRoute from "./ProtectedRoute"
-import { UserContext } from "./UserContext";
-import { UserProvider } from "./UserContext";
-
-
-
-
+import { UserProvider } from './UserContext';
 
 
 const AppController = () =>{ 
@@ -25,7 +20,7 @@ const AppController = () =>{
     return(
       
         <> 
-        <UserProvider>
+          <UserProvider>
         <BrowserRouter>
             <Routes>
                 <Route path="/users" element={ <ProtectedRoute allowedRoles={["Admin"]}>  <ManageUser/> </ProtectedRoute> }/>
@@ -40,6 +35,7 @@ const AppController = () =>{
             </Routes>
         </BrowserRouter>
         </UserProvider>
+     
         </>
     )
 }

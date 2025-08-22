@@ -14,6 +14,7 @@ import logo from '../icons/itrackwhite.png';
 import { getCurrentUser } from '../getCurrentUser';
 import { useContext } from "react";
 
+
 import { UserContext } from "../UserContext";
 
 import '../css/Sidebar.css';
@@ -52,28 +53,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   // ✅ Use the hooks above inside the handler
   const handleSignOut = async () => {
-    const confirmLogout = window.confirm("Are you sure you want to log out?");
-    if (!confirmLogout) return;
+  const confirmLogout = window.confirm("Are you sure you want to log out?");
+  if (!confirmLogout) return;
 
-    try {
-      const token = localStorage.getItem("token");
+  try {
+    // Logout request uses session cookie
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/logout",
+      {},
+      { withCredentials: true } // important for cookies
+    );
 
-      await axios.post(
-        "https://itrack-web-backend.onrender.com/api/logout", 
-        {}, 
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-
-      logout();             // clear context & localStorage
-      navigate("/", { replace: true });  // redirect to login
-
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  };
+    logout(); // clear context
+    navigate("/", { replace: true }); // redirect to login
+  } catch (err) {
+    console.error("Logout failed:", err.response?.data || err.message);
+    alert("Logout failed. Please try again.");
+  }
+};
 
   
   
