@@ -1,19 +1,15 @@
+import { useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { UserContext } from "./UserContext";
 
-import { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useContext(UserContext);
 
-// Example: get user from React context (set after login)
-import { UserContext } from './UserContext';
+  if (loading) {
+    return <div>Loading...</div>; // 👈 prevents redirect before user is restored
+  }
 
-
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useContext(UserContext);
-
-  if (loading) return <div>Loading...</div>;
-
-  if (!user) return <Navigate to="/" />;
-  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
-  return children;
+  return user ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
