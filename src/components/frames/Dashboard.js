@@ -6,7 +6,7 @@ import logo from '../icons/I-track logo.png';
 import Sidebar from './Sidebar'; 
 import { getCurrentUser } from '../getCurrentUser';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { UserContext } from "../UserContext";
+
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);

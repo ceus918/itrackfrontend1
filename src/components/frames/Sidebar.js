@@ -12,17 +12,12 @@ import driverIcon from '../icons/driverallocation.png';
 import axios from 'axios';
 import logo from '../icons/itrackwhite.png'; 
 import { getCurrentUser } from '../getCurrentUser';
-import { useContext } from "react";
-
-
-import { UserContext } from "../UserContext";
 
 import '../css/Sidebar.css';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
-  const navigate = useNavigate();            // ✅ Move hook here
-  const { logout } = useContext(UserContext); // ✅ Move hook here
+  const navigate = useNavigate();
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -32,15 +27,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   }, []);
 
   const menuItems = [
-    { name: "Dashboard", icon: dashboardIcon, path: "/dashboard" },
-    { name: "Reports", icon: reportsIcon, path: "/reports" },
-    { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
-    { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
-    { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
-    { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
-    { name: "User Management", icon: usersIcon, path: "/users" },
-  ];
+  { name: "Dashboard", icon: dashboardIcon, path: "/dashboard" },
+  { name: "Reports", icon: reportsIcon, path: "/reports" },
+  { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
+  { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
+  { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
+  { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
+  { name: "User Management", icon: usersIcon, path: "/users" },
+];
 
+  // Filter menu for Sales Agent, Manager, and Supervisor
   const filteredMenu = ['Sales Agent', 'Manager', 'Supervisor'].includes(userRole)
     ? menuItems.filter(item => [
         'Dashboard',
@@ -51,24 +47,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       ].includes(item.name))
     : menuItems;
 
-  // ✅ Use the hooks above inside the handler
   const handleSignOut = async () => {
   const confirmLogout = window.confirm("Are you sure you want to log out?");
   if (!confirmLogout) return;
 
   try {
-    // Logout request uses session cookie
-    await axios.post(
-      "https://itrack-web-backend.onrender.com/api/logout",
-      {},
-      { withCredentials: true } // important for cookies
-    );
-
-    logout(); // clear context
-    navigate("/", { replace: true }); // redirect to login
+    await axios.post('http://localhost:8000/api/logout', {}, { withCredentials: true });
+    navigate("/login");
   } catch (err) {
-    console.error("Logout failed:", err.response?.data || err.message);
-    alert("Logout failed. Please try again.");
+    console.error("Logout failed:", err);
   }
 };
 
