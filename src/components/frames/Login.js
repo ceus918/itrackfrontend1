@@ -23,8 +23,6 @@ const Login = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   useEffect(() => {
     axios
@@ -40,15 +38,20 @@ const Login = () => {
 
 
   const handleLogin = async () => {
-    try {
-      const res = await axios.post("/api/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user); // backend should send {user, token}
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Login failed", err);
-    }
-  };
+  try {
+    const res = await axios.post(
+      "https://itrack-web-backend.onrender.com/api/login", 
+      { email: loginInfo.email, password: loginInfo.password }
+    );
+
+    localStorage.setItem("token", res.data.token);
+    setUser(res.data.user); // backend should return { user, token }
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Login failed", err);
+    setErrorMessage("Invalid email or password");
+  }
+};
 
 
   const handleSubmit = (e) => {
