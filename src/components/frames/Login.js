@@ -46,14 +46,16 @@ const Login = () => {
     );
 
     localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-    login(res.data.user); // backend should return { user, token }
+    setUser(res.data.user);   // ✅ this updates context
     navigate("/dashboard");
   } catch (err) {
-    console.error("Login failed", err);
+    console.error("Login failed", err.response?.data || err.message);
+    console.log("Logging in with", loginInfo);
+
     setErrorMessage("Invalid email or password");
   }
 };
+
 
 
   const handleSubmit = (e) => {
