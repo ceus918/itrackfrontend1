@@ -2,8 +2,9 @@
 import './App.css';
 
 import AppController from './components/AppController';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';  // 👈 add useEffect here
 import { UserContext } from './components/UserContext';
+
 
 function App() {
   const [user, setUser] = useState(() => {
