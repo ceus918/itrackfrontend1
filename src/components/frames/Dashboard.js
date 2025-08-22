@@ -24,9 +24,7 @@ const Dashboard = () => {
     '#8B5CF6', // Violet
     '#06B6D4', // Cyan
     '#84CC16', // Lime
-    '#F97316', // Orange
-    '#EC4899', // Pink
-    '#6366F1', // Indigo
+   
   ];
 
   // Custom tooltip component

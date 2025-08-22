@@ -32,10 +32,19 @@ const Reports = () => {
 
 const fetchCompletedRequests = async () => {
   try {
-    const res = await axios.get("https://itrack-web-backend.onrender.com/api/getCompletedRequests", { withCredentials: true });
-     console.log("Completed Requests:", res.data); 
-    setRequests(res.data); // Duration is already included
+    const token = localStorage.getItem("token");
 
+    const res = await axios.get(
+      "https://itrack-web-backend.onrender.com/api/getCompletedRequests",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // send token
+        },
+      }
+    );
+
+    console.log("Completed Requests:", res.data); 
+    setRequests(res.data); // Duration is already included
   } catch (err) {
     console.log(err);
   }
@@ -106,12 +115,24 @@ const handleClearFilter = () => {
 
 const [completedAllocations, setCompletedAllocations] = useState([]);
 
-  const fetchCompletedAllocations = () => {
-  axios.get("https://itrack-web-backend.onrender.com/api/getCompletedAllocations", { withCredentials: true }) // ✅ corrected endpoint
-    .then((res) => {
-      setCompletedAllocations(res.data);
-    })
-    .catch((err) => console.log(err));
+  const fetchCompletedAllocations = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.get(
+      "https://itrack-web-backend.onrender.com/api/getCompletedAllocations",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // send token
+        },
+      }
+    );
+
+    console.log("Completed Allocations:", res.data);
+    setCompletedAllocations(res.data);
+  } catch (err) {
+    console.error("Error fetching completed allocations:", err);
+  }
 };
 
 
@@ -126,27 +147,38 @@ useEffect(() => {
   }, []);
 
   const fetchStockData = async () => {
-    try {
-      const response = await axios.get("https://itrack-web-backend.onrender.com/api/getStock", { withCredentials: true });
-      setStock(response.data);
+  try {
+    const token = localStorage.getItem("token");
 
-      // Group by unitName and count occurrences
-      const summary = response.data.reduce((acc, item) => {
-        acc[item.unitName] = (acc[item.unitName] || 0) + 1;
-        return acc;
-      }, {});
+    const response = await axios.get(
+      "https://itrack-web-backend.onrender.com/api/getStock",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // send token
+        },
+      }
+    );
 
-      // Convert object to array for easier mapping
-      const summaryArray = Object.entries(summary).map(([unitName, quantity]) => ({
-        unitName,
-        quantity
-      }));
+    setStock(response.data);
 
-      setUnitSummary(summaryArray);
-    } catch (error) {
-      console.error("Error fetching stock data:", error);
-    }
-  };
+    // Group by unitName and count occurrences
+    const summary = response.data.reduce((acc, item) => {
+      acc[item.unitName] = (acc[item.unitName] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Convert object to array for easier mapping
+    const summaryArray = Object.entries(summary).map(([unitName, quantity]) => ({
+      unitName,
+      quantity,
+    }));
+
+    setUnitSummary(summaryArray);
+  } catch (error) {
+    console.error("Error fetching stock data:", error);
+  }
+};
+
 
  
 const handleDownloadPDF = () => {
@@ -232,19 +264,36 @@ const handleDownloadPDF = () => {
 
 
 
-  useEffect(() => {
-    getCurrentUser().then(user => {
-      setCurrentUser(user);
-      if (user && user.email) {
-        axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
-          .then(res => {
-            const found = res.data.find(u => u.email === user.email);
-            setFullUser(found);
-          })
-          .catch(() => setFullUser(null));
-      }
-    });
-  }, []);
+useEffect(() => {
+  const fetchCurrentUser = async () => {
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      if (!token) return; // no token, user not logged in
+
+      // Call backend endpoint to get the current user's full info
+      const res = await axios.get(
+        "https://itrack-web-backend.onrender.com/api/getUsers",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // send token for auth
+          },
+        }
+      );
+
+      // Set current user in state
+      setCurrentUser(res.data);
+      setFullUser(res.data); // fullUser now contains all info
+    } catch (err) {
+      console.error("Failed to fetch current user", err);
+      setCurrentUser(null);
+      setFullUser(null);
+    }
+  };
+
+  fetchCurrentUser();
+}, []);
+
 
   return (
     <div className="app">
