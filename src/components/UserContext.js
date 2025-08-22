@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
-import { UserProvider } from "./UserContext";
+
 
 
 export const UserContext = createContext();
