@@ -6,10 +6,10 @@ const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(UserContext);
 
   if (loading) {
-    return <div>Loading...</div>; // 👈 prevents redirect before user is restored
+    return <div>Loading...</div>; // wait until user is loaded
   }
 
-  return user ? children : <Navigate to="/login" replace />;
+  return user ? children : <Navigate to="/" replace />; // redirect to login if no user
 };
 
 export default ProtectedRoute;
