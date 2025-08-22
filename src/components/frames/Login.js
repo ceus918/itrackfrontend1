@@ -39,22 +39,26 @@ const Login = () => {
 
 
   const handleLogin = async () => {
+  console.log("Logging in with", loginInfo);
+
   try {
     const res = await axios.post(
-      "https://itrack-web-backend.onrender.com/api/login", 
+      "https://itrack-web-backend.onrender.com/api/login",
       { email: loginInfo.email, password: loginInfo.password }
     );
 
+    // Save token + set user in context
     localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);   // ✅ this updates context
-    navigate("/dashboard");
-  } catch (err) {
-    console.error("Login failed", err.response?.data || err.message);
-    console.log("Logging in with", loginInfo);
+    setUser(res.data.user);
 
+    // Navigate to dashboard
+    navigate("/dashboard");
+  } catch (e) {
+    console.error("Login failed", e.response?.data || e.message);
     setErrorMessage("Invalid email or password");
   }
 };
+
 
 
 
