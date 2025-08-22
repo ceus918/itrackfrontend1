@@ -7,19 +7,13 @@
 //cd server
 //nodemon server.js
 
-import React, { useState, useEffect, useContext } from 'react';
-import { UserContext } from '../UserContext';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../css/Login.css';
 import Logo from '../icons/I-track logo.png';
 
-
-
-
-
 const Login = () => {
-  const { setUser } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,13 +21,10 @@ const Login = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const navigate = useNavigate();
-  const { login } = useContext(UserContext);
- 
 
   useEffect(() => {
-    axios
-      // .get("http://localhost:8000/api/getUsers")
-      .get("https://itrack-web-backend.onrender.com/api/getUsers")
+
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
       .then((res) => setUsers(res.data))
       .catch((err) => {
         console.log(err);
@@ -41,29 +32,24 @@ const Login = () => {
       });
   }, []);
 
+  const handleLogin = () => {
+  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
+    withCredentials: true
+  })
+    .then((res) => {
+      if (res.data.success) {
+        navigate('/dashboard');
+      } else {
+        setErrorMessage(res.data.message || 'Invalid email or password.');
+      }
+    })
+    .catch((err) => {
+      console.error(err);  // ✅ LOG errors for debugging
+      setErrorMessage('Invalid email or password.');
+    });
+};
 
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setErrorMessage('');
-
-    try {
-      const res = await axios.post(
-        'https://itrack-web-backend.onrender.com/api/login',
-        loginInfo,
-        { withCredentials: true }
-      );
-
-      login(res.data.user); // set user in context
-      navigate('/dashboard');
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      setErrorMessage('Invalid email or password');
-    }
-  };
-
-
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     handleLogin();
@@ -73,7 +59,7 @@ const Login = () => {
     e.preventDefault();
     setForgotMessage('');
 
-  axios.post(`https://itrack-web-backend.onrender.com/api/forgot-password`, { email: forgotEmail })
+    axios.post(`http://localhost:8000/api/forgot-password`, { email: forgotEmail })
 
 
       .then((res) => {

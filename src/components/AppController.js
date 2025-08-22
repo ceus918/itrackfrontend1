@@ -12,15 +12,14 @@ import Reports from "./frames/Reports"
 import ResetPassword from "./frames/ResetPassword"
 import SendResetLinks from "./frames/SendResetLinks"
 import ProtectedRoute from "./ProtectedRoute"
-import { UserProvider } from './UserContext';
+
 
 
 const AppController = () =>{ 
 
     return(
       
-        <> 
-          <UserProvider>
+        <>
         <BrowserRouter>
             <Routes>
                 <Route path="/users" element={ <ProtectedRoute allowedRoles={["Admin"]}>  <ManageUser/> </ProtectedRoute> }/>
@@ -34,8 +33,6 @@ const AppController = () =>{
                 <Route path="/send-reset-links" element={<SendResetLinks />} />
             </Routes>
         </BrowserRouter>
-        </UserProvider>
-     
         </>
     )
 }

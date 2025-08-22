@@ -1,15 +1,28 @@
-import { useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { UserContext } from "./UserContext";
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useContext(UserContext);
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
-  if (loading) {
-    return <div>Loading...</div>; // wait until user is loaded
-  }
+  useEffect(() => {
+    axios.get("https://itrack-web-backend.onrender.com/api/checkAuth", { withCredentials: true })
+      .then(res => {
+        setUser(res.data.authenticated ? res.data.user : null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setUser(null);
+        setLoading(false);
+      });
+  }, [location.pathname]);
 
-  return user ? children : <Navigate to="/" replace />; // redirect to login if no user
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/" />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
+  return children;
 };
 
 export default ProtectedRoute;
