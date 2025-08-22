@@ -14,6 +14,10 @@ import { useNavigate } from 'react-router-dom';
 import '../css/Login.css';
 import Logo from '../icons/I-track logo.png';
 
+
+
+
+
 const Login = () => {
   const { setUser } = useContext(UserContext);
   const [users, setUsers] = useState([]);
@@ -23,7 +27,8 @@ const Login = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const navigate = useNavigate();
-   const { login } = useContext(UserContext);
+  const { login } = useContext(UserContext);
+ 
 
   useEffect(() => {
     axios
@@ -44,14 +49,17 @@ const Login = () => {
   try {
     const res = await axios.post(
       "https://itrack-web-backend.onrender.com/api/login",
-      { email: loginInfo.email, password: loginInfo.password }
+      { email: loginInfo.email, password: loginInfo.password },
+      { withCredentials: true } // ✅ so cookies/session stick
     );
 
-    // Save token + set user in context
+    // Save token (optional, depending on backend)
     localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
 
-    // Navigate to dashboard
+    // ✅ Use context login instead of setUser
+    login(res.data.user);
+
+    // Navigate
     navigate("/dashboard");
   } catch (e) {
     console.error("Login failed", e.response?.data || e.message);
