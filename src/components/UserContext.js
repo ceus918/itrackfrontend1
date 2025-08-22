@@ -2,35 +2,33 @@ import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
 
-
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Load user from backend using token
+  // Load user from localStorage when app starts
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      try {
-        const res = await axios.get("/api/dashboard", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUser(res.data.user); // expects {id, name, role, ...}
-      } catch (err) {
-        console.error("Invalid/expired token", err);
-        localStorage.removeItem("token");
-        setUser(null);
-      }
-    };
-
-    fetchUser();
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
+  // When user logs in, save to localStorage
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  // Logout clears localStorage
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, login, logout }}>
       {children}
     </UserContext.Provider>
   );

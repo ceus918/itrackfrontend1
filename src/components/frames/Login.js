@@ -45,7 +45,8 @@ const Login = () => {
     );
 
     localStorage.setItem("token", res.data.token);
-    setUser(res.data.user); // backend should return { user, token }
+    setUser(res.data.user);
+    login(res.data.user); // backend should return { user, token }
     navigate("/dashboard");
   } catch (err) {
     console.error("Login failed", err);
