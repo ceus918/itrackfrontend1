@@ -33,7 +33,7 @@ const ManageUser = () => {
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers")
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
@@ -48,7 +48,7 @@ const ManageUser = () => {
   }, []);
 
   const fetchUsers = () => {
-    axios.get("http://localhost:8000/api/getUsers")
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
       .then((response) => {
         setUser(response.data);
       })
@@ -58,7 +58,7 @@ const ManageUser = () => {
   };
 
   const handleDeleteUser = (id) => {
-    axios.delete(`http://localhost:8000/api/deleteUser/${id}`)
+    axios.delete(`https://itrack-web-backend.onrender.com/api/deleteUser/${id}`)
       .then(() => fetchUsers())
       .catch((error) => console.log(error));
   };
@@ -70,7 +70,7 @@ const ManageUser = () => {
       return;
     }
   
-    axios.post("http://localhost:8000/api/createUser", newUser)
+    axios.post("https://itrack-web-backend.onrender.com/api/createUser", newUser)
       .then(() => {
         fetchUsers();
         setNewUser({ name: '', phoneno: '', email: '', password: '', role: '' });
@@ -89,7 +89,7 @@ const ManageUser = () => {
       return;
     }
   
-    axios.put(`http://localhost:8000/api/updateUser/${id}`, editUser)
+    axios.put(`https://itrack-web-backend.onrender.com/api/updateUser/${id}`, editUser)
       .then(() => {
         fetchUsers();
         setEditUser(null);

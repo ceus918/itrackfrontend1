@@ -56,7 +56,7 @@ const ServiceRequest = () => {
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers", { withCredentials: true })
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
@@ -105,7 +105,7 @@ const ServiceRequest = () => {
   }, [currentRequests]);
 
   const fetchRequests = () => {
-    axios.get("http://localhost:8000/api/getRequest", { withCredentials: true })
+    axios.get("https://itrack-web-backend.onrender.com/api/getRequest", { withCredentials: true })
       .then((res) => setRequests(res.data))
       .catch((err) => console.log(err));
   };
@@ -118,7 +118,7 @@ const ServiceRequest = () => {
       return;
     }
 
-    axios.post("http://localhost:8000/api/createRequest", newRequest, { withCredentials: true })
+    axios.post("https://itrack-web-backend.onrender.com/api/createRequest", newRequest, { withCredentials: true })
       .then(() => {
         fetchRequests();
         setNewRequest({
@@ -141,7 +141,7 @@ const ServiceRequest = () => {
       return;
     }
   
-    axios.put(`http://localhost:8000/api/updateRequest/${id}`, editRequest, { withCredentials: true })
+    axios.put(`https://itrack-web-backend.onrender.com/api/updateRequest/${id}`, editRequest, { withCredentials: true })
       .then(() => {
         fetchRequests();
         setEditRequest(null);
@@ -151,7 +151,7 @@ const ServiceRequest = () => {
   
 
   const handleDeleteRequest = (id) => {
-    axios.delete(`http://localhost:8000/api/deleteRequest/${id}`, { withCredentials: true })
+    axios.delete(`https://itrack-web-backend.onrender.com/api/deleteRequest/${id}`, { withCredentials: true })
       .then(() => fetchRequests())
       .catch((err) => console.log(err));
   };

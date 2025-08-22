@@ -32,7 +32,7 @@ const Reports = () => {
 
 const fetchCompletedRequests = async () => {
   try {
-    const res = await axios.get("http://localhost:8000/api/getCompletedRequests", { withCredentials: true });
+    const res = await axios.get("https://itrack-web-backend.onrender.com/api/getCompletedRequests", { withCredentials: true });
      console.log("Completed Requests:", res.data); 
     setRequests(res.data); // Duration is already included
 
@@ -107,7 +107,7 @@ const handleClearFilter = () => {
 const [completedAllocations, setCompletedAllocations] = useState([]);
 
   const fetchCompletedAllocations = () => {
-  axios.get("http://localhost:8000/api/getCompletedAllocations", { withCredentials: true }) // ✅ corrected endpoint
+  axios.get("https://itrack-web-backend.onrender.com/api/getCompletedAllocations", { withCredentials: true }) // ✅ corrected endpoint
     .then((res) => {
       setCompletedAllocations(res.data);
     })
@@ -127,7 +127,7 @@ useEffect(() => {
 
   const fetchStockData = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/getStock", { withCredentials: true });
+      const response = await axios.get("https://itrack-web-backend.onrender.com/api/getStock", { withCredentials: true });
       setStock(response.data);
 
       // Group by unitName and count occurrences
@@ -236,7 +236,7 @@ const handleDownloadPDF = () => {
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers", { withCredentials: true })
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
