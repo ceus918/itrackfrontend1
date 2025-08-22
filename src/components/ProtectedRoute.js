@@ -9,6 +9,8 @@ import { UserContext } from './UserContext';
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useContext(UserContext);
 
+  if (loading) return <div>Loading...</div>;
+
   if (!user) return <Navigate to="/" />;
   if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
   return children;
