@@ -44,6 +44,7 @@ const Login = () => {
       if (res.data.success) {
         console.log("User data exists, setting user context...");
         setUser(res.data.user);  // use backend user object
+        localStorage.setItem('user', JSON.stringify(res.data.user)); // persist
         navigate('/dashboard');
       } else {
         setErrorMessage(res.data.message || 'Invalid email or password.');
