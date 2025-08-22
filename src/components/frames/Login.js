@@ -23,6 +23,7 @@ const Login = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const navigate = useNavigate();
+   const { login } = useContext(UserContext);
 
   useEffect(() => {
     axios
