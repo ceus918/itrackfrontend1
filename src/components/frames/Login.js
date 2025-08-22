@@ -39,8 +39,10 @@ const Login = () => {
   axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
     .then((res) => {
       console.log("LOGIN RESPONSE:", res.data);
+      console.log("USER OBJECT:", res.data.user);
 
       if (res.data.success) {
+        console.log("User data exists, setting user context...");
         setUser(res.data.user);  // use backend user object
         navigate('/dashboard');
       } else {
