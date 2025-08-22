@@ -12,6 +12,8 @@ import Reports from "./frames/Reports"
 import ResetPassword from "./frames/ResetPassword"
 import SendResetLinks from "./frames/SendResetLinks"
 import ProtectedRoute from "./ProtectedRoute"
+import { UserProvider } from "../context/UserContext";
+
 
 
 
