@@ -19,7 +19,8 @@ const AppController = () =>{
 
     return(
       
-        <>
+        <> 
+        <UserProvider>
         <BrowserRouter>
             <Routes>
                 <Route path="/users" element={ <ProtectedRoute allowedRoles={["Admin"]}>  <ManageUser/> </ProtectedRoute> }/>
@@ -33,6 +34,7 @@ const AppController = () =>{
                 <Route path="/send-reset-links" element={<SendResetLinks />} />
             </Routes>
         </BrowserRouter>
+        </UserProvider>
         </>
     )
 }

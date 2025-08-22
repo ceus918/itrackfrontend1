@@ -35,27 +35,18 @@ const Login = () => {
       });
   }, []);
 
-  const handleLogin = () => {
-  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo)
-    .then((res) => {
-      console.log("LOGIN RESPONSE:", res.data);
-      console.log("USER OBJECT:", res.data.user);
 
-      if (res.data.success) {
-        console.log("User data exists, setting user context...");
-        setUser(res.data.user);  // use backend user object
-        localStorage.setItem('user', JSON.stringify(res.data.user)); // persist
-        navigate('/dashboard');
-      } else {
-        setErrorMessage(res.data.message || 'Invalid email or password.');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      setErrorMessage('Invalid email or password.');
-    });
-};
 
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post("/api/login", { email, password });
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user); // backend should send {user, token}
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login failed", err);
+    }
+  };
 
 
   const handleSubmit = (e) => {
