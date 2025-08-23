@@ -52,7 +52,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   if (!confirmLogout) return;
 
   try {
-    await axios.post('http://localhost:8000/api/logout', {}, { withCredentials: true });
+    await axios.post('https://itrack-web-backend.onrender.com/api/logout', {}, { withCredentials: true });
     navigate("/login");
   } catch (err) {
     console.error("Logout failed:", err);
