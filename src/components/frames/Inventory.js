@@ -76,7 +76,7 @@ const [fullUser, setFullUser] = useState(null);
 
   const oldStock = stock.find(item => item._id === id);
 
-  axios.put(`http://localhost:8000/api/updateStock/${id}`, editStock)
+  axios.put(`https://itrack-web-backend.onrender.com/api/updateStock/${id}`, editStock)
     .then(() => {
       setChangeLogs(prev => [
         ...prev,
@@ -97,7 +97,7 @@ const [fullUser, setFullUser] = useState(null);
   const handleDeleteStock = (id) => {
   const deletedStock = stock.find(item => item._id === id);
 
-  axios.delete(`http://localhost:8000/api/deleteStock/${id}`)
+  axios.delete(`https://itrack-web-backend.onrender.com/api/deleteStock/${id}`)
     .then(() => {
       setChangeLogs(prev => [
         ...prev,
