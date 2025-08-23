@@ -61,6 +61,7 @@ const Dashboard = () => {
   const renderCustomLabel = () => null;
 
   useEffect(() => {
+  // axios.get("http://localhost:8000/api/getStock")
   axios.get("https://itrack-web-backend.onrender.com/api/getStock")
       .then((response) => {
         setStockCount(response.data.length);
@@ -81,6 +82,7 @@ const Dashboard = () => {
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
+  // axios.get("http://localhost:8000/api/getUsers")
   axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
@@ -94,6 +96,7 @@ const Dashboard = () => {
   const [completedCount, setCompletedCount] = useState(0);
 
   useEffect(() => {
+  // axios.get("http://localhost:8000/api/getCompletedRequests", { withCredentials: true })
   axios.get("https://itrack-web-backend.onrender.com/api/getCompletedRequests", { withCredentials: true })
       .then((res) => {
         setCompletedCount(res.data.length);
@@ -115,6 +118,7 @@ const [recentPreparations, setRecentPreparations] = useState([]);
 
 useEffect(() => {
   // Step 1: Fetch all requests
+  // axios.get("http://localhost:8000/api/getRequest", { withCredentials: true })
   axios.get("https://itrack-web-backend.onrender.com/api/getRequest", { withCredentials: true })
     .then(async (res) => {
       console.log('All service requests:', res.data); // Debug log
@@ -132,6 +136,7 @@ useEffect(() => {
       const fetched = [];
       for (let req of top5) {
         try {
+          // const resp = await axios.get(`http://localhost:8000/api/getRequest/${req._id}`, { withCredentials: true });
           const resp = await axios.get(`https://itrack-web-backend.onrender.com/api/getRequest/${req._id}`, { withCredentials: true });
           if (resp.data) fetched.push(resp.data);
         } catch (e) {
@@ -145,6 +150,7 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  // axios.get("http://localhost:8000/api/getAllocation", { withCredentials: true })
   axios.get("https://itrack-web-backend.onrender.com/api/getAllocation", { withCredentials: true })
     .then((res) => {
       const inTransit = res.data.filter(item => item.status === 'In Transit');

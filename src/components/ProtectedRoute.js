@@ -8,6 +8,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const location = useLocation();
 
   useEffect(() => {
+    // axios.get("http://localhost:8000/api/checkAuth", { withCredentials: true })
     axios.get("https://itrack-web-backend.onrender.com/api/checkAuth", { withCredentials: true })
       .then(res => {
         setUser(res.data.authenticated ? res.data.user : null);
