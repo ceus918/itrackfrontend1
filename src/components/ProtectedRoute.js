@@ -8,7 +8,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const location = useLocation();
 
   useEffect(() => {
-    axios.get("https://itrack-web-backend.onrender.com/api/checkAuth", { withCredentials: true })
+    axios.get("http://localhost:8000/api/checkAuth", { withCredentials: true })
       .then(res => {
         setUser(res.data.authenticated ? res.data.user : null);
         setLoading(false);
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }, [location.pathname]);
 
   if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/" />;
+  if (!user) return <Navigate to="/login" />;
   if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
   return children;
 };
