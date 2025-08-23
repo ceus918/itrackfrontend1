@@ -24,8 +24,8 @@ const Login = () => {
 
   useEffect(() => {
 
-    // axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
-    axios.get("http://localhost:8000/api/getUsers")
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+    // axios.get("http://localhost:8000/api/getUsers")
       .then((res) => setUsers(res.data))
       .catch((err) => {
         console.log(err);
@@ -34,12 +34,12 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
-  // axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
-  //   withCredentials: true
-  // })
-  axios.post("http://localhost:8000/api/login", loginInfo, {
+  axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
     withCredentials: true
   })
+  // axios.post("http://localhost:8000/api/login", loginInfo, {
+  //   withCredentials: true
+  // })
     .then((res) => {
       if (res.data.success) {
         navigate('/dashboard');

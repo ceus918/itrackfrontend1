@@ -1,4 +1,4 @@
-// Utility to get user info from session (for client)
+
 // getCurrentUser.js
 import axios from 'axios';
 
