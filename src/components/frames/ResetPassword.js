@@ -11,10 +11,11 @@ function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://itrack-web-backend.onrender.com/api/reset-password", {
-        token,
-        password,
-      });
+     const res = await axios.post(
+  `https://itrack-web-backend.onrender.com/api/reset-password/${token}`,
+  { password }
+);
+
       setMessage(res.data.message);
       navigate("/");
     } catch (err) {
