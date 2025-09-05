@@ -43,16 +43,21 @@
 
 // export default ResetPassword;
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function ResetPassword() {
-  const { token } = useParams(); // Read token from URL
+  const { token } = useParams();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 🔹 Log token when page is loaded
+  useEffect(() => {
+    console.log("Reset Password page opened with token:", token);
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +69,6 @@ function ResetPassword() {
     try {
       setLoading(true);
 
-      // POST new password to backend API
       const res = await axios.post(
         `https://itrack-web-backend.onrender.com/api/reset-password/${token}`,
         { password }
@@ -72,9 +76,8 @@ function ResetPassword() {
 
       setMessage(res.data.message);
 
-      // Optional: redirect to login after a few seconds
       setTimeout(() => {
-        navigate("/"); // adjust to your login route
+        navigate("/");
       }, 2000);
 
     } catch (err) {
