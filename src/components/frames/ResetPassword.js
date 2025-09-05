@@ -53,6 +53,7 @@ function ResetPassword() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  console.log("ResetPassword mounted with token:", token);
 
   // 🔹 Log token when page is loaded
   useEffect(() => {
