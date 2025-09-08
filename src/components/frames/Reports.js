@@ -225,7 +225,32 @@ const handleDownloadPDF = () => {
     theme: 'grid',
     styles: { fontSize: 10 },
     margin: { left: 14, right: 14 },
+    
   });
+
+  // Full Inventory Table
+doc.addPage();
+doc.setFontSize(13);
+doc.text('Full Inventory', 14, 15);
+
+const inventoryData = stock.map(item => [
+  item.unitName,
+  item.unitId,
+  item.bodyColor,
+  item.variation,
+  item.quantity,
+  item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : 'N/A'
+]);
+
+autoTable(doc, {
+  head: [['Unit Name', 'Conduction Number', 'Body Color', 'Variation', 'Quantity', 'Date Added']],
+  body: inventoryData,
+  startY: 20,
+  theme: 'grid',
+  styles: { fontSize: 10 },
+  margin: { left: 14, right: 14 },
+});
+
 
   doc.save('Reports.pdf');
 };
@@ -290,11 +315,11 @@ const handleDownloadPDF = () => {
 
   <button className="filter-btn" onClick={handleFilter}>
     Filter
-    <img src={filterIcon} alt="Filter" className="button-icon" />
+    <img src={filterIcon} alt="Filter" className="button-icon1" />
   </button>
 
-  <button className="pdf-btn" onClick={handleDownloadPDF}>Download
-    <img src={downloadIcon} alt="Download" className="button-icon" />
+  <button className="pdf-btn" onClick={handleDownloadPDF}>Download<img src={downloadIcon} alt="Download" className="button-icon" />
+    
   </button>
 </div>
 
@@ -396,28 +421,36 @@ const handleDownloadPDF = () => {
               
             </div>
 
-             {/* New Stock Summary Table */}
-             {/* <div className="single-table" style={{marginTop: '32px'}}>
-          <div className="report-section">
-            <h4 className="table-label">Stocks Summary</h4>
-            <table className="report-table">
-              <thead>
-                <tr>
-                  <th>Unit Name</th>
-                  <th>Quantity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {unitSummary.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.unitName}</td>
-                    <td>{item.quantity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </div> */}
+            <div className="single-table">
+  <h4 className="table-label">Inventory</h4>
+  <div className="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Unit Name</th>
+          <th>Conduction Number</th>
+          <th>Body Color</th>
+          <th>Variation</th>
+          <th>Quantity</th>
+          <th>Date Added</th>
+        </tr>
+      </thead>
+      <tbody>
+        {stock.map((item) => (
+          <tr key={item._id}>
+            <td>{item.unitName}</td>
+            <td>{item.unitId}</td>
+            <td>{item.bodyColor}</td>
+            <td>{item.variation}</td>
+            <td>{item.quantity}</td>
+            <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 
 

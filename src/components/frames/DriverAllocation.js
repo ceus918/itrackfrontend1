@@ -6,6 +6,10 @@ import logo from '../icons/I-track logo.png';
 import addIcon from '../icons/add.png'; 
 import searchIcon from '../icons/search.png';
 import { getCurrentUser } from '../getCurrentUser';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import downloadIcon from '../icons/download2.png';
+
 
 const DriverAllocation = () => {
   const [allocation, setAllocations] = useState([]);
@@ -26,6 +30,21 @@ const DriverAllocation = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [fullUser, setFullUser] = useState(null);
+
+  const validateConductionNumber = (value) => {
+  const regex = /^[A-Za-z0-9]+$/; // only letters and numbers
+  if (!value) {
+    return "Conduction Number is required.";
+  }
+  if (!regex.test(value)) {
+    return "Conduction Number must be alphanumeric (letters and numbers only).";
+  }
+  if (value.length < 6 || value.length > 8) {
+    return "Conduction Number must be 6 to 8 characters.";
+  }
+  return null;
+};
+
 
   useEffect(() => {
     fetchAllocations();
@@ -49,36 +68,59 @@ const DriverAllocation = () => {
   };
 
   const handleCreate = () => {
-    const { unitName, unitId, bodyColor, variation, assignedDriver } = newAllocation;
-    if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
-      alert("All fields are required.");
-      return;
-    }
+  const { unitName, unitId, bodyColor, variation, assignedDriver } = newAllocation;
+
+  const conductionError = validateConductionNumber(unitId);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
+    alert("All fields are required.");
+    return;
+  }
 
   axios.post("https://itrack-web-backend.onrender.com/api/createAllocation", newAllocation, { withCredentials: true })
-      .then(() => {
-        fetchAllocations();
-        setNewAllocation({
-          unitName: '',
-          unitId: '',
-          bodyColor: '',
-          variation: '',
-          assignedDriver: '',
-          status: 'Pending',
-        });
-        setIsCreateModalOpen(false);
-      })
-      .catch((err) => console.log(err));
-  };
+    .then(() => {
+      fetchAllocations();
+      setNewAllocation({
+        unitName: '',
+        unitId: '',
+        bodyColor: '',
+        variation: '',
+        assignedDriver: '',
+        status: 'Pending',
+        date: ''
+      });
+      setIsCreateModalOpen(false);
+    })
+    .catch((err) => console.log(err));
+};
+
 
   const handleUpdate = (id) => {
+  const { unitName, unitId, bodyColor, variation, assignedDriver } = editAllocation;
+
+  const conductionError = validateConductionNumber(unitId);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
+    alert("All fields are required.");
+    return;
+  }
+
   axios.put(`https://itrack-web-backend.onrender.com/api/updateAllocation/${id}`, editAllocation, { withCredentials: true })
-      .then(() => {
-        fetchAllocations();
-        setEditAllocation(null);
-      })
-      .catch((err) => console.log(err));
-  };
+    .then(() => {
+      fetchAllocations();
+      setEditAllocation(null);
+    })
+    .catch((err) => console.log(err));
+};
+
 
   const handleDelete = (id) => {
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteAllocation/${id}`, { withCredentials: true })
@@ -112,6 +154,33 @@ const currentAllocations = allocation.slice(indexOfFirstItem, indexOfLastItem);
 const totalPages = Math.ceil(allocation.length / itemsPerPage);
 
 
+const handleDownloadAllocationsPDF = () => {
+  const doc = new jsPDF();
+
+  doc.setFontSize(14);
+  doc.text('Driver Allocations', 14, 15);
+
+  const allocationData = allocation.map(item => [
+    new Date(item.date).toLocaleDateString('en-CA'),
+    item.unitName,
+    item.unitId,
+    item.bodyColor,
+    item.variation,
+    item.assignedDriver,
+    item.status
+  ]);
+
+  autoTable(doc, {
+    head: [['Date', 'Unit Name', 'Conduction No.', 'Body Color', 'Variation', 'Assigned Driver', 'Status']],
+    body: allocationData,
+    startY: 20,
+    theme: 'grid',
+    styles: { fontSize: 10 },
+    margin: { left: 14, right: 14 },
+  });
+
+  doc.save('DriverAllocations.pdf');
+};
 
 
 
@@ -131,6 +200,13 @@ const totalPages = Math.ceil(allocation.length / itemsPerPage);
 </header>
 
         <div className="user-management-header" >
+          <button 
+            onClick={handleDownloadAllocationsPDF} 
+            className="printbtn" style={{  fontSize: '10px', display: 'flex', alignItems: 'center',marginRight:3 ,gap:3}}
+            tabIndex={0}
+          ><img src={downloadIcon} alt="Download" className="button-icon2" />
+          Print PDF
+          </button>
                <div className="search-container">
                  <div className="search-input-wrapper">
                    <input
@@ -170,7 +246,7 @@ const totalPages = Math.ceil(allocation.length / itemsPerPage);
             <table>
               <thead>
                 <tr>
-                <th>Date Created</th>
+                <th>Date</th>
                   <th>Unit Name</th>
                   <th>Conduction Number</th>
                   <th>Body Color</th>

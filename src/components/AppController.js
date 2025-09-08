@@ -1,6 +1,7 @@
 import React from "react"
 
 import {BrowserRouter,Route,Routes} from 'react-router-dom'
+import axios from "axios"
 
 import ManageUser from "./frames/ManageUser"
 import Login from "./frames/Login"
@@ -13,6 +14,7 @@ import ResetPassword from "./frames/ResetPassword"
 import SendResetLinks from "./frames/SendResetLinks"
 import ProtectedRoute from "./ProtectedRoute"
 
+axios.defaults.withCredentials = true;
 
 
 

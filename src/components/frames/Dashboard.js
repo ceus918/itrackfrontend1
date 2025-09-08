@@ -47,9 +47,9 @@ const Dashboard = () => {
           <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
             Quantity: <span style={{ color: '#111827', fontWeight: '600' }}>{data.value}</span>
           </p>
-          <p style={{ margin: '2px 0 0 0', color: '#6B7280' }}>
+          {/* <p style={{ margin: '2px 0 0 0', color: '#6B7280' }}>
             Percentage: <span style={{ color: '#111827', fontWeight: '600' }}>{percentage}%</span>
-          </p>
+          </p> */}
         </div>
       );
     }
@@ -282,7 +282,7 @@ useEffect(() => {
                    
                     }}>
                       
-                      Quantity
+                      
                     </span>
                   </div>
                   {stockData.map((item, index) => (

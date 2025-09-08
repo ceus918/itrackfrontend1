@@ -64,38 +64,80 @@ const ManageUser = () => {
   };
 
   const handleCreateUser = () => {
-    // Check if any field is empty
-    if (!newUser.name || !newUser.phoneno || !newUser.email || !newUser.password || !newUser.role) {
-      alert("All fields are required!");
-      return;
-    }
-  
-    axios.post("https://itrack-web-backend.onrender.com/api/createUser", newUser)
-      .then(() => {
-        fetchUsers();
-        setNewUser({ name: '', phoneno: '', email: '', password: '', role: '' });
-        setIsCreateModalOpen(false); 
-      })
-      .catch((error) => {
-        alert("Failed to create user. Please check your input and try again.");
-        console.log(error);
-      });
-  };
+  if (!newUser.name || !newUser.phoneno || !newUser.email || !newUser.password || !newUser.role) {
+    alert("All fields are required!");
+    return;
+  }
+
+  // Password validation
+  if (newUser.password.length < 8) {
+    alert("Password must be at least 8 characters long.");
+    return;
+  }
+
+  // Check for duplicate email or phone number
+  const duplicateEmail = user.find(u => u.email === newUser.email);
+  const duplicatePhone = user.find(u => u.phoneno === newUser.phoneno);
+
+  if (duplicateEmail) {
+    alert("Email already exists. Please use a different email.");
+    return;
+  }
+
+  if (duplicatePhone) {
+    alert("Phone number already exists. Please use a different phone number.");
+    return;
+  }
+
+  axios.post("https://itrack-web-backend.onrender.com/api/createUser", newUser)
+    .then(() => {
+      fetchUsers();
+      setNewUser({ name: '', phoneno: '', email: '', password: '', role: '' });
+      setIsCreateModalOpen(false); 
+    })
+    .catch((error) => {
+      alert("Failed to create user. Please check your input and try again.");
+      console.log(error);
+    });
+};
+
+
   
   const handleUpdateUser = (id) => {
-    // Check if any field is empty
-    if (!editUser.name || !editUser.phoneno || !editUser.email || !editUser.password || !editUser.role) {
-      alert("All fields are required!");
-      return;
-    }
-  
-    axios.put(`https://itrack-web-backend.onrender.com/api/updateUser/${id}`, editUser)
-      .then(() => {
-        fetchUsers();
-        setEditUser(null);
-      })
-      .catch((error) => console.log(error));
-  };
+  if (!editUser.name || !editUser.phoneno || !editUser.email || !editUser.password || !editUser.role) {
+    alert("All fields are required!");
+    return;
+  }
+
+  // Password validation
+  if (editUser.password.length < 8) {
+    alert("Password must be at least 8 characters long.");
+    return;
+  }
+
+  // Check for duplicates excluding the current user
+  const duplicateEmail = user.find(u => u.email === editUser.email && u._id !== id);
+  const duplicatePhone = user.find(u => u.phoneno === editUser.phoneno && u._id !== id);
+
+  if (duplicateEmail) {
+    alert("Email already exists. Please use a different email.");
+    return;
+  }
+
+  if (duplicatePhone) {
+    alert("Phone number already exists. Please use a different phone number.");
+    return;
+  }
+
+  axios.put(`https://itrack-web-backend.onrender.com/api/updateUser/${id}`, editUser)
+    .then(() => {
+      fetchUsers();
+      setEditUser(null);
+    })
+    .catch((error) => console.log(error));
+};
+
+
 
    const [searchInput, setSearchInput] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -370,7 +412,7 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
                 )}
               </div>
               <button onClick={() => setIsAuditModalOpen(true)} style={{ color:'black',fontSize:'10px', margin: '16px 0', padding: '6px 12px', background: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-                Change Logs
+                Audit Trail
               </button>
               {isAuditModalOpen && (
                 <div style={{

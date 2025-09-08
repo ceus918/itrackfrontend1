@@ -15,6 +15,7 @@
 .modal {
   background-color: #fff; /* ✅ white modal box */
   padding: 30px;
+  padding-bottom: 0%;
   border-radius: 5px;
   width: 1200px;
   height: 600px;
@@ -512,6 +513,20 @@ button.clear-button:hover {
   cursor: pointer;
 }
 
+.printbtn {
+  background: none;
+  border: none;
+  height: 31px;
+  width: 83px;
+  content: 'center';
+  background-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  border: 0.5px solid #ccc !important;
+  border-radius: 5px;
+
+  cursor: pointer;
+}
+
 .search-icon {
   width: 15px;
   height: 15px;
@@ -625,7 +640,7 @@ text-align: left !important;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 20px;
+  
 }
 
 /* Create Button */
@@ -633,10 +648,11 @@ text-align: left !important;
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 2px 6px;
   font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 140px;
   transition: background-color 0.3s ease;
 }
 
@@ -653,6 +669,7 @@ text-align: left !important;
   font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 140px;
   transition: background-color 0.3s ease;
 }
 
@@ -748,7 +765,7 @@ text-align: left !important;
   background-color: #e60000; /* Match your system's red color */
   color: white;
   border: none;
-  padding: 10px 20px;
+  
   font-size: 12px;
   font-weight: bold;
   border-radius: 4px;
@@ -783,7 +800,7 @@ text-align: left !important;
   background-color: #f1f1f1; /* Match your action-btn background */
   color: #333;
   border: 1px solid #ccc;
-  padding: 10px 20px;
+
   font-size: 12px;
   font-weight: 550; /* Match your action-btn font-weight */
   border-radius: 4px;

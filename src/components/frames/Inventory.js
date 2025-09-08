@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // ✅ for table export
 import searchIcon from '../icons/search.png';
 import addIcon from '../icons/add.png'; 
 import logo from '../icons/I-track logo.png'; 
+import downloadIcon from '../icons/download2.png';
 import { getCurrentUser } from '../getCurrentUser';
-
 
 const Inventory = () => {
   const [stock, setStock] = useState([]);
@@ -25,6 +27,21 @@ const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 const [userRole, setUserRole] = useState(null);
 const [currentUser, setCurrentUser] = useState(null);
 const [fullUser, setFullUser] = useState(null);
+
+
+const validateConductionNumber = (value) => {
+  const regex = /^[A-Za-z0-9]+$/; // only letters and numbers
+  if (!value) {
+    return "Conduction Number is required.";
+  }
+  if (!regex.test(value)) {
+    return "Conduction Number must be alphanumeric (letters and numbers only).";
+  }
+  if (value.length < 6 || value.length > 8) {
+    return "Conduction Number must be 6 to 8 characters.";
+  }
+  return null;
+};
 
 
   useEffect(() => {
@@ -53,6 +70,14 @@ const [fullUser, setFullUser] = useState(null);
 
   const handleCreateStock = () => {
     const { unitName, unitId, bodyColor, variation} = newStock;
+
+    const conductionError = validateConductionNumber(unitId);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  
     if (!unitName || !unitId || !bodyColor || !variation) {
       alert('All fields are required!');
       return;
@@ -69,6 +94,13 @@ const [fullUser, setFullUser] = useState(null);
 
   const handleUpdateStock = (id) => {
   const { unitName, unitId, bodyColor, variation } = editStock;
+
+
+  const conductionError = validateConductionNumber(unitId);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
   if (!unitName || !unitId || !bodyColor || !variation) {
     alert('All fields are required!');
     return;
@@ -148,12 +180,17 @@ const [fullUser, setFullUser] = useState(null);
   // Strict filter for dropdowns (body color or variation)
   const bodyColors = ["Black", "White", "Gray", "Blue", "Orange"];
   const variations = ["4x2 LSA", "4x4", "LS-E", "LS"];
+  const unitNames = ["Isuzu MU-X", "Isuzu D-MAX", "Isuzu Traviz"];
+
   let strictlyFilteredStock = stock;
-  if (bodyColors.includes(filterTerm)) {
-    strictlyFilteredStock = strictlyFilteredStock.filter(req => req.bodyColor === filterTerm);
-  } else if (variations.includes(filterTerm)) {
-    strictlyFilteredStock = strictlyFilteredStock.filter(req => req.variation === filterTerm);
-  }
+if (bodyColors.includes(filterTerm)) {
+  strictlyFilteredStock = strictlyFilteredStock.filter(req => req.bodyColor === filterTerm);
+} else if (variations.includes(filterTerm)) {
+  strictlyFilteredStock = strictlyFilteredStock.filter(req => req.variation === filterTerm);
+} else if (unitNames.includes(filterTerm)) {
+  strictlyFilteredStock = strictlyFilteredStock.filter(req => req.unitName === filterTerm);
+}
+
 
   // Original search logic (broad search)
   const filteredStock = stock.filter((req) => {
@@ -176,6 +213,37 @@ const currentStock = filteredStock.slice(indexOfFirstItem, indexOfLastItem);
 
 const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
 
+const handleDownloadInventoryPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(14);
+    doc.text('Inventory Report', 14, 15);
+
+    const inventoryData = stock.map(item => [
+      item.unitName,
+      item.unitId,
+      item.bodyColor,
+      item.variation,
+      item.quantity,
+      item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : 'N/A'
+    ]);
+
+    autoTable(doc, {
+      head: [['Unit Name', 'Conduction Number', 'Body Color', 'Variation', 'Quantity', 'Date Added']],
+      body: inventoryData,
+      startY: 20,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      margin: { left: 14, right: 14 },
+    });
+
+    doc.save('Inventory.pdf');
+  };
+
+
+
+
+
 
 
   return (
@@ -186,6 +254,7 @@ const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
         <header className="header">
          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <h3 className="header-title1">Inventory</h3>
+           
           {fullUser && fullUser.name && (
             <div className="loggedinuser" style={{ marginLeft: 'auto', fontWeight: 500, fontSize: 15 }}>
               Welcome, {fullUser.name}
@@ -193,6 +262,13 @@ const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
           )}
         </header>
         <div className="user-management-header" style={{ gap: 0 }}>
+          <button 
+            onClick={handleDownloadInventoryPDF} 
+            className="printbtn" style={{  fontSize: '10px', display: 'flex', alignItems: 'center',marginRight:5 ,gap:3}}
+            tabIndex={0}
+          ><img src={downloadIcon} alt="Download" className="button-icon2" />
+          Print PDF
+          </button>
           {/* Filter Dropdown Button */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
@@ -207,6 +283,7 @@ const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
               <img src={require('../icons/sort.png')}  style={{ width: 12, height: 12,marginLeft: 4 , }} />Filter
              
             </button>
+            
             <div id="filter-dropdown-panel" style={{ display: 'none', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', borderRadius: 6, padding: '12px 16px', minWidth: 180, zIndex: 10, position: 'absolute', marginTop: 38 }}>
               <div style={{ marginBottom: 10 }}>
                 <label style={{ fontWeight: 600, fontSize: 12, marginBottom: 6, display: 'block',textAlign:"left" }}>Body Color</label>
@@ -239,8 +316,29 @@ const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
                   <option value="LS">LS</option>
                 </select>
               </div>
+
+              <div style={{ marginBottom: 10 }}>
+  <label style={{ fontWeight: 600, fontSize: 12, marginBottom: 6, display: 'block', textAlign: "left" }}>
+    Unit Name
+  </label>
+  <select
+    className="filter-dropdown"
+    onChange={e => setFilterTerm(e.target.value)}
+    value={filterTerm && ["Isuzu MU-X", "Isuzu D-MAX", "Isuzu Traviz"].includes(filterTerm) ? filterTerm : ""}
+    style={{ width: '100%', fontSize: 12, padding: '6px 10px', borderRadius: 4 }}
+  >
+    <option value="">All</option>
+    <option value="Isuzu MU-X">Isuzu MU-X</option>
+    <option value="Isuzu D-MAX">Isuzu D-MAX</option>
+    <option value="Isuzu Traviz">Isuzu Traviz</option>
+  </select>
+</div>
+
             </div>
+
+            
           </div>
+          
           <div className="search-container">
             <div className="search-input-wrapper">
               <input

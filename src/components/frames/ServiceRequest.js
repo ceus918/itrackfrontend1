@@ -7,6 +7,11 @@ import logo from '../icons/I-track logo.png';
 import addIcon from '../icons/add.png'; 
 import dropdownIcon from '../icons/drop-down-arrow.png'; 
 import { getCurrentUser } from '../getCurrentUser';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import downloadIcon from '../icons/download2.png';
+
+
 
 const ServiceRequest = () => {
   const [requests, setRequests] = useState([]);
@@ -27,6 +32,21 @@ const ServiceRequest = () => {
   const [userRole, setUserRole] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [fullUser, setFullUser] = useState(null);
+
+  const validateConductionNumber = (value) => {
+  const regex = /^[A-Za-z0-9]+$/; // only letters and numbers
+  if (!value) {
+    return "Conduction Number is required.";
+  }
+  if (!regex.test(value)) {
+    return "Conduction Number must be alphanumeric (letters and numbers only).";
+  }
+  if (value.length < 6 || value.length > 8) {
+    return "Conduction Number must be 6 to 8 characters.";
+  }
+  return null;
+};
+
 
   const filteredRequests = requests.filter((req) => {
     const searchValue = searchTerm.toLowerCase();
@@ -111,43 +131,57 @@ const ServiceRequest = () => {
   };
 
   const handleCreateRequest = () => {
-    const { dateCreated, vehicleRegNo, service, unitName } = newRequest;
+  const { dateCreated, vehicleRegNo, service, unitName } = newRequest;
 
-    if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
-      alert("All fields are required.");
-      return;
-    }
+  const conductionError = validateConductionNumber(vehicleRegNo);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
 
-    axios.post("https://itrack-web-backend.onrender.com/api/createRequest", newRequest, { withCredentials: true })
-      .then(() => {
-        fetchRequests();
-        setNewRequest({
-          dateCreated: '',
-          vehicleRegNo: '',
-          unitName: '',
-          service: [],
-          status: 'Pending'
-        });
-        setIsCreateModalOpen(false);
-      })
-      .catch((err) => console.log(err));
-  };
+  if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
+    alert("All fields are required.");
+    return;
+  }
+
+  axios.post("https://itrack-web-backend.onrender.com/api/createRequest", newRequest, { withCredentials: true })
+    .then(() => {
+      fetchRequests();
+      setNewRequest({
+        dateCreated: '',
+        vehicleRegNo: '',
+        unitName: '',
+        service: [],
+        status: 'Pending'
+      });
+      setIsCreateModalOpen(false);
+    })
+    .catch((err) => console.log(err));
+};
+
   
   const handleUpdateRequest = (id) => {
-    const { dateCreated, vehicleRegNo, service, unitName } = editRequest;
-  
-    if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
-      alert("All fields are required.");
-      return;
-    }
-  
-    axios.put(`https://itrack-web-backend.onrender.com/api/updateRequest/${id}`, editRequest, { withCredentials: true })
-      .then(() => {
-        fetchRequests();
-        setEditRequest(null);
-      })
-      .catch((err) => console.log(err));
-  };
+  const { dateCreated, vehicleRegNo, service, unitName } = editRequest;
+
+  const conductionError = validateConductionNumber(vehicleRegNo);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
+    alert("All fields are required.");
+    return;
+  }
+
+  axios.put(`https://itrack-web-backend.onrender.com/api/updateRequest/${id}`, editRequest, { withCredentials: true })
+    .then(() => {
+      fetchRequests();
+      setEditRequest(null);
+    })
+    .catch((err) => console.log(err));
+};
+
   
 
   const handleDeleteRequest = (id) => {
@@ -155,6 +189,34 @@ const ServiceRequest = () => {
       .then(() => fetchRequests())
       .catch((err) => console.log(err));
   };
+
+  const handleDownloadRequestsPDF = () => {
+  const doc = new jsPDF();
+
+  doc.setFontSize(14);
+  doc.text('Vehicle Preparation Requests', 14, 15);
+
+  const requestData = filteredRequests.map(req => [
+    new Date(req.dateCreated).toLocaleDateString('en-CA'),
+    req.vehicleRegNo,
+    req.unitName,
+    Array.isArray(req.service) ? req.service.join(', ') : req.service,
+    req.status,
+    req.serviceTime ? `${req.serviceTime} min` : '—'
+  ]);
+
+  autoTable(doc, {
+    head: [['Date Created', 'Conduction No.', 'Unit Name', 'Service', 'Status', 'Estimated Time']],
+    body: requestData,
+    startY: 20,
+    theme: 'grid',
+    styles: { fontSize: 10 },
+    margin: { left: 14, right: 14 },
+  });
+
+  doc.save('ServiceRequests.pdf');
+};
+
 
   return (
     <div className="app">
@@ -372,6 +434,13 @@ const ServiceRequest = () => {
       
 
       <div className="user-management-header" >
+        <button 
+                    onClick={handleDownloadRequestsPDF} 
+                    className="printbtn" style={{  fontSize: '10px', display: 'flex', alignItems: 'center',marginRight:3 ,gap:3}}
+                    tabIndex={0}
+                  ><img src={downloadIcon} alt="Download" className="button-icon2" />
+                  Print PDF
+                  </button>
        <div className="search-container">
          <div className="search-input-wrapper">
            <input
@@ -451,7 +520,7 @@ const ServiceRequest = () => {
   </span>
 </td>
 <td>
-  // A.I. RESULT
+  :
   {req.status === 'In Progress' && req.serviceTime !== undefined && req.serviceTime !== null && req.inProgressAt
     ? (() => {
       const totalSeconds = countdowns[req._id] || 0;
