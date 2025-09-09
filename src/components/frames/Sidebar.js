@@ -12,6 +12,7 @@ import driverIcon from '../icons/driverallocation.png';
 import axios from 'axios';
 import logo from '../icons/itrackwhite.png'; 
 import { getCurrentUser } from '../getCurrentUser';
+import testDriveIcon from '../icons/testdrive.png'; // <--
 
 import '../css/Sidebar.css';
 
@@ -33,6 +34,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
   { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
   { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
+    { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
   { name: "User Management", icon: usersIcon, path: "/users" },
 ];
 
@@ -44,6 +46,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         'Vehicle Stocks',
         'Vehicle Preperation',
         'Vehicle Shipments',
+        'Test Drive',
       ].includes(item.name))
     : menuItems;
 
