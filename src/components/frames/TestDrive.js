@@ -24,7 +24,7 @@ const TestDrive = () => {
     fetchTestDrives();
     getCurrentUser().then(user => {
       if (user && user.email) {
-        axios.get("http://localhost:8000/api/getUsers")
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
           .then(res => {
             const found = res.data.find(u => u.email === user.email);
             setFullUser(found);
@@ -35,7 +35,7 @@ const TestDrive = () => {
   }, []);
 
   const fetchVehicles = () => {
-    axios.get('http://localhost:8000/api/getStock')
+    axios.get('https://itrack-web-backend.onrender.com/api/getStock')
       .then(res => {
         console.log(res.data); // 
         console.log(vehicles);
@@ -47,7 +47,7 @@ const TestDrive = () => {
   };
 
   const fetchTestDrives = () => {
-    axios.get('http://localhost:8000/api/getAllTestDrives')
+    axios.get('https://itrack-web-backend.onrender.com/api/getAllTestDrives')
       .then(res => setTestDrives(res.data))
       .catch(err => console.error(err));
   };
@@ -59,7 +59,7 @@ const TestDrive = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/createTestDrive', formData);
+      await axios.post('https://itrack-web-backend.onrender.com/createTestDrive', formData);
 
       setSuccess('Test drive scheduled successfully!');
       setFormData({ vehicleId: '', date: '', time: '', name: '', contact: '' });
@@ -78,7 +78,7 @@ const TestDrive = () => {
   const handleDelete = (id) => {
   if (window.confirm('Are you sure you want to delete this test drive?')) {
     axios
-      .delete(`http://localhost:8000/api/deleteTestDrive/${id}`)
+      .delete(`https://itrack-web-backend.onrender.com/deleteTestDrive/${id}`)
       .then(() => {
         setSuccess('Test drive deleted successfully.');
         fetchTestDrives(); // refresh the list
