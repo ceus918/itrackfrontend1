@@ -13,6 +13,7 @@ import Reports from "./frames/Reports"
 import ResetPassword from "./frames/ResetPassword"
 import SendResetLinks from "./frames/SendResetLinks"
 import ProtectedRoute from "./ProtectedRoute"
+import TestDrive from "./frames/TestDrive"
 
 axios.defaults.withCredentials = true;
 
@@ -31,6 +32,7 @@ const AppController = () =>{
                 <Route path="/inventory" element={ <ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}>  <Inventory/> </ProtectedRoute>}/>
                 <Route path="/driverallocation" element={ <ProtectedRoute allowedRoles={["Admin"]}>  <DriverAllocation/> </ProtectedRoute>}/>
                 <Route path="/servicerequest" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <ServiceRequest/> </ProtectedRoute>}/>
+                <Route path="/testdrive" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <TestDrive/> </ProtectedRoute>}/>
                 <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <Dashboard/> </ProtectedRoute> } />
                 
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
