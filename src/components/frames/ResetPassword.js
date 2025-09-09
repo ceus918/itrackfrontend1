@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Logo from '../icons/I-track logo.png';
 
 function ResetPassword() {
   const { token } = useParams();
@@ -53,7 +54,7 @@ function ResetPassword() {
         {/* You can reuse your logo/title row */}
         <div className="login-logo">
           <div className="logo-title-row">
-            <img src="/logo192.png" alt="App Logo" />
+           <img  className="logo" src={Logo} alt="I-TRACK Logo" />
             <h1>Reset Password</h1>
           </div>
         </div>

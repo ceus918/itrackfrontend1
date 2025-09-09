@@ -128,7 +128,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px; /* space between logo and text */
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 
 }
 
