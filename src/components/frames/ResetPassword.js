@@ -1,48 +1,3 @@
-// import { useState } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import axios from "axios";
-
-// function ResetPassword() {
-//   const { token } = useParams();
-//   const navigate = useNavigate();
-//   const [password, setPassword] = useState("");
-//   const [message, setMessage] = useState("");
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     try {
-//      const res = await axios.post(
-//   `https://itrack-web-backend.onrender.com/api/reset-password/${token}`,
-//   { password }
-// );
-
-//       setMessage(res.data.message);
-//       navigate("/");
-//     } catch (err) {
-//       setMessage("Error resetting password");
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>Reset Your Password</h2>
-//       <form onSubmit={handleSubmit}>
-//         <input
-//           type="password"
-//           placeholder="Enter new password"
-//           value={password}
-//           onChange={(e) => setPassword(e.target.value)}
-//           required
-//         />
-//         <button type="submit">Reset Password</button>
-//       </form>
-//       <p>{message}</p>
-//     </div>
-//   );
-// }
-
-// export default ResetPassword;
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -53,9 +8,8 @@ function ResetPassword() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  console.log("ResetPassword mounted with token:", token);
 
-  // 🔹 Log token when page is loaded
+  // Debugging token
   useEffect(() => {
     console.log("Reset Password page opened with token:", token);
   }, [token]);
@@ -77,6 +31,7 @@ function ResetPassword() {
 
       setMessage(res.data.message);
 
+      // redirect after success
       setTimeout(() => {
         navigate("/");
       }, 2000);
@@ -92,26 +47,45 @@ function ResetPassword() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
-      <h2>Reset Your Password</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "8px", marginBottom: "12px" }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ width: "100%", padding: "10px" }}
-        >
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-      </form>
-      {message && <p style={{ marginTop: "15px" }}>{message}</p>}
+    <div className="login-container">
+      <div className="login-card">
+        
+        {/* You can reuse your logo/title row */}
+        <div className="login-logo">
+          <div className="logo-title-row">
+            <img src="/logo192.png" alt="App Logo" />
+            <h1>Reset Password</h1>
+          </div>
+        </div>
+
+        <p className="login-subtitle">Enter your new password below.</p>
+
+        <form className="login-form" onSubmit={handleSubmit}>
+          <label htmlFor="password">New Password</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="Enter new password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Resetting..." : "Reset Password"}
+          </button>
+        </form>
+
+        {message && (
+          <p className={message.includes("Error") ? "error-message" : "login-note"}>
+            {message}
+          </p>
+        )}
+
+        <div className="login-footer">
+          <p>© {new Date().getFullYear()} iTrack. All rights reserved.</p>
+        </div>
+      </div>
     </div>
   );
 }

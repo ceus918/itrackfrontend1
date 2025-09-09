@@ -59,7 +59,7 @@ const TestDrive = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://itrack-web-backend.onrender.com/createTestDrive', formData);
+      await axios.post('https://itrack-web-backend.onrender.com/api/createTestDrive', formData);
 
       setSuccess('Test drive scheduled successfully!');
       setFormData({ vehicleId: '', date: '', time: '', name: '', contact: '' });
@@ -78,7 +78,7 @@ const TestDrive = () => {
   const handleDelete = (id) => {
   if (window.confirm('Are you sure you want to delete this test drive?')) {
     axios
-      .delete(`https://itrack-web-backend.onrender.com/deleteTestDrive/${id}`)
+      .delete(`https://itrack-web-backend.onrender.com/api/deleteTestDrive/${id}`)
       .then(() => {
         setSuccess('Test drive deleted successfully.');
         fetchTestDrives(); // refresh the list
