@@ -336,7 +336,8 @@ const ServiceRequest = () => {
       {editRequest && !['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
   <div className="modal-overlay">
     <div className="modal">
-      <h3>Edit Vehicle Preparation</h3>
+      <p className='modaltitle'>Edit Vehicle Preparation</p>
+       <div className='modalline'> 
       <div className="modal-content">
         <div className="modal-form">
           <div className="modal-form-group">
@@ -405,14 +406,15 @@ const ServiceRequest = () => {
         </div>
 
         <div className="modal-buttons">
-          <button className="create-btn" onClick={() => handleUpdateRequest(editRequest._id)}>
+          <button className="create-btn1" onClick={() => handleUpdateRequest(editRequest._id)}>
             Save
           </button>
-          <button className="cancel-btn" onClick={() => setEditRequest(null)}>
+          <button className="cancel-btn1" onClick={() => setEditRequest(null)}>
             Cancel
           </button>
         </div>
       </div>
+       </div>
     </div>
   </div>
 )}

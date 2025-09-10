@@ -216,7 +216,8 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
               {isCreateModalOpen && (
                 <div className="modal-overlay">
                   <div className="modal">
-                    <h3>Create New User</h3>
+                    <p className='modaltitle'>Create New User</p>
+                      <div className='modalline'> 
                     <div className="modal-content">
                       <div className="modal-form">
                         <div className="modal-form-group">
@@ -274,9 +275,10 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
                         </div>
                       </div>
                       <div className="modal-buttons">
-                        <button className="create-btn" onClick={handleCreateUser}>Create</button>
-                        <button className="cancel-btn" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                        <button className="create-btn1" onClick={handleCreateUser}>Create</button>
+                        <button className="cancel-btn1" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
                       </div>
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -284,7 +286,8 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
               {editUser && (
                 <div className="modal-overlay">
                   <div className="modal">
-                    <h3>Edit User</h3>
+                    <p className='modaltitle'>Edit User</p>
+                     <div className='modalline'> 
                     <div className="modal-content">
                       <div className="modal-form">
                         <div className="modal-form-group">
@@ -342,9 +345,10 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
                         </div>
                       </div>
                       <div className="modal-buttons">
-                        <button className="create-btn" onClick={() => { handleUpdateUser(editUser._id); setEditUser(null); }}>Save</button>
-                        <button className="cancel-btn" onClick={() => setEditUser(null)}>Cancel</button>
+                        <button className="create-btn1" onClick={() => { handleUpdateUser(editUser._id); setEditUser(null); }}>Save</button>
+                        <button className="cancel-btn1" onClick={() => setEditUser(null)}>Cancel</button>
                       </div>
+                    </div>
                     </div>
                   </div>
                 </div>

@@ -445,7 +445,8 @@ const handleDownloadInventoryPDF = () => {
 {editStock && (
   <div className="modal-overlay">
     <div className="modal">
-      <h3>Edit Stock</h3>
+      <p className='modaltitle'>Edit Stock</p>
+      <div className='modalline'> 
       <div className="modal-content">
         <div className="modal-form">
           <div className="modal-form-group">
@@ -498,9 +499,10 @@ const handleDownloadInventoryPDF = () => {
           </div>
         </div>
         <div className="modal-buttons">
-          <button className="create-btn" onClick={() => handleUpdateStock(editStock._id)}>Save</button>
-          <button className="cancel-btn" onClick={() => setEditStock(null)}>Cancel</button>
+          <button className="create-btn1" onClick={() => handleUpdateStock(editStock._id)}>Save</button>
+          <button className="cancel-btn1" onClick={() => setEditStock(null)}>Cancel</button>
         </div>
+      </div>
       </div>
     </div>
   </div>

@@ -656,6 +656,18 @@ text-align: left !important;
   transition: background-color 0.3s ease;
 }
 
+.create-btn3 {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 60px;
+  transition: background-color 0.3s ease;
+}
+
 .create-btn1:hover {
   background-color: #0056b3;
 }
@@ -670,6 +682,17 @@ text-align: left !important;
   border-radius: 6px;
   cursor: pointer;
   margin-top: 140px;
+  transition: background-color 0.3s ease;
+}
+.cancel-btn3 {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 60px;
   transition: background-color 0.3s ease;
 }
 
@@ -760,7 +783,7 @@ text-align: left !important;
 
 /* Primary Action Button (Create/Save) */
 .create-btn1,
-.save-btn,
+.save-btn,.create-btn3,
 .submit-btn {
   background-color: #e60000; /* Match your system's red color */
   color: white;
@@ -796,6 +819,7 @@ text-align: left !important;
 /* Secondary Action Button (Cancel/Close) */
 .cancel-btn1,
 .close-btn,
+.cancel-btn3,
 .cancel-btn {
   background-color: #f1f1f1; /* Match your action-btn background */
   color: #333;
@@ -824,6 +848,7 @@ text-align: left !important;
 
 .cancel-btn1:active,
 .close-btn:active,
+.cancel-btn3:active,
 .cancel-btn:active {
   transform: translateY(0);
   background-color: #ddd;

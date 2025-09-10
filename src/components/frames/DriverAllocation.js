@@ -418,8 +418,8 @@ const handleDownloadAllocationsPDF = () => {
         </div>
 
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={handleCreate}>Confirm</button>
-          <button className="cancel-btn1" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+          <button className="create-btn3" onClick={handleCreate}>Confirm</button>
+          <button className="cancel-btn3" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
         </div>
       </div>
     </div>
@@ -429,7 +429,8 @@ const handleDownloadAllocationsPDF = () => {
 {editAllocation && (
   <div className="modal-overlay">
     <div className="modal">
-      <h3>Edit Allocation</h3>
+      <p className='modaltitle'>Edit Allocation</p>
+      <div className='modalline'> 
       <div className="modal-content">
         <div className="modal-form">
           <div className="modal-form-group">
@@ -506,9 +507,10 @@ const handleDownloadAllocationsPDF = () => {
         </div>
 
         <div className="modal-buttons">
-          <button className="create-btn" onClick={() => handleUpdate(editAllocation._id)}>Save</button>
-          <button className="cancel-btn" onClick={() => setEditAllocation(null)}>Cancel</button>
+          <button className="create-btn1" onClick={() => handleUpdate(editAllocation._id)}>Save</button>
+          <button className="cancel-btn1" onClick={() => setEditAllocation(null)}>Cancel</button>
         </div>
+      </div>
       </div>
     </div>
   </div>

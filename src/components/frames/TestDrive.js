@@ -105,126 +105,111 @@ const toggleDropdown = (id) => {
         <header className="header">
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <h3 className="header-title1">Test Drive</h3>
-          {fullUser && fullUser.name && (
-            <div className="loggedinuser">
+         {fullUser && fullUser.name && (
+            <div className="loggedinuser" style={{ marginLeft: 'auto', fontWeight: 500, fontSize: 15 }}>
               Welcome, {fullUser.name}
             </div>
           )}
         </header>
 
-        <div className="content">
-          <h3>Schedule a Test Drive</h3>
-          
-          <div className="modal-content">
-            <form onSubmit={handleSubmit} className="modal-form">
-              <div className="modal-form-group">
-                <label>Available Vehicle <span style={{color: 'red'}}>*</span></label>
-                <select name="vehicleId" value={formData.vehicleId} onChange={handleChange} required>
-  <option value="">Select a Vehicle</option>
-  {vehicles
-    .filter(vehicle => 
-      !testDrives.some(testDrive => testDrive.vehicleId === vehicle._id)
-    )
-    .map(vehicle => (
-      <option key={vehicle._id} value={vehicle._id}>
-        {vehicle.unitName} - {vehicle.variation} ({vehicle.bodyColor}) | Available: {vehicle.quantity}
-      </option>
-    ))
-  }
-</select>
+        <div className="testdrive-content">
+  <h3>Schedule a Test Drive</h3>
 
-              </div>
+  <div className="testdrive-modal">
+    <form onSubmit={handleSubmit} className="testdrive-form">
+      <div className="testdrive-form-group">
+        <label>Available Vehicle <span style={{color: 'red'}}>*</span></label>
+        <select name="vehicleId" value={formData.vehicleId} onChange={handleChange} required>
+          <option value="">Select a Vehicle</option>
+          {vehicles.filter(vehicle => !testDrives.some(td => td.vehicleId === vehicle._id))
+            .map(vehicle => (
+              <option key={vehicle._id} value={vehicle._id}>
+                {vehicle.unitName} - {vehicle.variation} ({vehicle.bodyColor}) | Available: {vehicle.quantity}
+              </option>
+            ))}
+        </select>
+      </div>
 
-              <div className="modal-form-group">
-                <label>Date <span style={{color: 'red'}}>*</span></label>
-                <input type="date" name="date" value={formData.date} onChange={handleChange} required />
-              </div>
+      <div className="testdrive-form-group">
+        <label>Date *</label>
+        <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+      </div>
 
-              <div className="modal-form-group">
-                <label>Time <span style={{color: 'red'}}>*</span></label>
-                <input type="time" name="time" value={formData.time} onChange={handleChange} required />
-              </div>
+      <div className="testdrive-form-group">
+        <label>Time *</label>
+        <input type="time" name="time" value={formData.time} onChange={handleChange} required />
+      </div>
 
-              <div className="modal-form-group">
-                <label>Name <span style={{color: 'red'}}>*</span></label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-              </div>
+      <div className="testdrive-form-group">
+        <label>Name *</label>
+        <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+      </div>
 
-              <div className="modal-form-group">
-                <label>Contact Number <span style={{color: 'red'}}>*</span></label>
-                <input type="text" name="contact" value={formData.contact} onChange={handleChange} required />
-              </div>
+      <div className="testdrive-form-group">
+        <label>Contact Number *</label>
+        <input type="text" name="contact" value={formData.contact} onChange={handleChange} required />
+      </div>
+    </form>
 
-            
-            </form> <div>
-  <button type="button" className="create-btn2" onClick={handleSubmit}>Schedule</button>
+    <div>
+      <button type="button" className="testdrive-btn" onClick={handleSubmit}>Schedule</button>
+    </div>
+
+    {success && (
+      <p className={success.includes('successfully') ? 'testdrive-success' : 'testdrive-error'}>
+        {success}
+      </p>
+    )}
+  </div>
+
+  <div className="testdrive-spacer"></div>
+
+  <h3>Scheduled Test Drives</h3>
+  <div className="testdrive-table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Name</th>
+          <th>Contact</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {testDrives.length === 0 ? (
+          <tr>
+            <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+              No test drives scheduled yet.
+            </td>
+          </tr>
+        ) : (
+          testDrives.map(schedule => (
+            <tr key={schedule._id}>
+              <td>{getVehicleInfo(schedule.vehicleId)}</td>
+              <td>{schedule.date}</td>
+              <td>{new Date(`1970-01-01T${schedule.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</td>
+              <td>{schedule.name}</td>
+              <td>{schedule.contact}</td>
+              <td>
+                <div className="testdrive-dropdown">
+                  <button className="testdrive-dropbtn" onClick={() => toggleDropdown(schedule._id)}>⋮</button>
+                  {openDropdownId === schedule._id && (
+                    <div className="testdrive-dropdown-menu">
+                      <button onClick={() => handleDelete(schedule._id)}>Delete</button>
+                    </div>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-            {success && (
-              <p className={success.includes('successfully') ? 'success-message' : 'error-message'}>
-                {success}
-              </p>
-            )}
-          </div>
-          <div className='spacer'>
-
-          </div>
-
-          <h3>Scheduled Test Drives</h3>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Vehicle</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Name</th>
-                  <th>Contact</th>
-                   <th>Action</th> 
-                </tr>
-              </thead>
-
-              <tbody>
-                {testDrives.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
-                      No test drives scheduled yet.
-                    </td>
-                  </tr>
-                ) : (
-                  testDrives.map(schedule => (
-                    <tr key={schedule._id}>
-                      <td>{getVehicleInfo(schedule.vehicleId)}</td>
-                      <td>{schedule.date}</td>
-                      <td>
-  {new Date(`1970-01-01T${schedule.time}`).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })}
-</td>
-
-
-                      <td>{schedule.name}</td>
-                      <td>{schedule.contact}</td>
-                      <td>
-                        <div className="dropdown-container">
-            <button className="dropbtn" onClick={() => toggleDropdown(schedule._id)}>⋮</button>
-            {openDropdownId === schedule._id && (
-              <div className="dropdown-menu">
-                <button onClick={() => handleDelete(schedule._id)}>Delete</button>
-              </div>
-            )}
-          </div>
-        </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   );
