@@ -14,16 +14,19 @@ const Dashboard = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [fullUser, setFullUser] = useState(null);
   const [stockData, setStockData] = useState([]);
+  const [allocation, setAllocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+
 
   // Enhanced color palette for the pie chart
   const CHART_COLORS = [
     '#e50914', // Red (customized from blue)
-    '#707070', // 
+    '#005d9bff', // 
     '#231f20', // 
-    '#EF4444', // Red
-    '#8B5CF6', // Violet
-    '#06B6D4', // Cyan
-    '#84CC16', // Lime
+    '#234a5cff', 
+    '#709cb7', // 
+    '#00aaffff', 
    
   ];
 
@@ -159,6 +162,23 @@ useEffect(() => {
     .catch((err) => console.log(err));
 }, []);
 
+
+  // Fetch allocations
+  useEffect(() => {
+    const fetchAllocations = async () => {
+      try {
+        const res = await axios.get("https://itrack-web-backend.onrender.com/api/getAllocation"); 
+        setAllocations(res.data);
+      } catch (error) {
+        console.error("Error fetching allocations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllocations();
+  }, []);
+
   return (
     <div className="app">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -204,13 +224,13 @@ useEffect(() => {
             borderRadius: '16px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
             border: '1px solid #e5e7eb',
-            marginBottom: '32px'
+            marginBottom: '2px'
           }}>
             <div style={{ 
               textAlign: 'center', 
-              marginBottom: '24px',
+              marginBottom: '2px',
              
-              paddingBottom: '16px'
+              paddingBottom: '1px'
             }}>
               <h5 style={{ 
                 margin: 0, 
@@ -219,7 +239,7 @@ useEffect(() => {
                 color: '#111827',
                 letterSpacing: '-0.025em'
               }}>
-                Stock Distribution
+                Stocks
               </h5>
               <p style={{ 
                 margin: '8px 0 0 0', 
@@ -333,7 +353,7 @@ useEffect(() => {
             )}
           </div>
           
-          <div className="recent-section" style={{ flex: 1, minWidth: '320px', maxWidth: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '32px' }}>
+          <div className="recent-section" style={{ flex: 1, minWidth: '320px', maxWidth: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '10px' }}>
             <h4 className="section-title">Recent In Progress Vehicle Preparation</h4>
             <div className="table-container">
               <table className="data-table">
@@ -372,6 +392,56 @@ useEffect(() => {
               </table>
             </div>
           </div>
+
+ {/* Pending & In Transit Shipments Table */}
+<div className="table-container" style={{ marginTop: "10px" }}>
+  <h4 className="section-title">Recent Assigned Shipments</h4>
+  <table>
+    <thead>
+      <tr>
+       
+        <th>Unit Name</th>
+        
+    
+        <th>Variation</th>
+        <th>Assigned Driver</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {allocation.filter(item => item.status === "Pending" || item.status === "In Transit").length === 0 ? (
+        <tr>
+          <td colSpan="7" style={{ textAlign: "center", color: "#888" }}>
+            No pending or in transit shipments found.
+          </td>
+        </tr>
+      ) : (
+        allocation
+          .filter(item => item.status === "Pending" || item.status === "In Transit")
+          .sort((a, b) => new Date(b.date) - new Date(a.date)) // ✅ newest first
+          .slice(0, 3) // ✅ only top 3
+          .map(item => (
+            <tr key={item._id}>
+              
+              <td>{item.unitName}</td>
+             
+    
+              <td>{item.variation}</td>
+              <td>{item.assignedDriver}</td>
+              <td>
+                <span className={`status-badge ${item.status.toLowerCase().replace(" ", "-")}`}>
+                  {item.status}
+                </span>
+              </td>
+            </tr>
+          ))
+      )}
+    </tbody>
+  </table>
+</div>
+
+
+
         </div>
 
         
