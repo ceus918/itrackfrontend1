@@ -9,9 +9,16 @@
       name="description"
       content="Web site created using create-react-app"
     />
+    
     <meta
   http-equiv="Content-Security-Policy"
-  content="default-src 'self'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.openstreetmap.org;"
+  content="
+    default-src 'self' https://itrack-web-backend.onrender.com;
+    connect-src 'self' https://itrack-web-backend.onrender.com;
+    img-src 'self' data: https://*.tile.openstreetmap.org https://*.openstreetmap.org;
+    script-src 'self';
+    style-src 'self' 'unsafe-inline';
+  "
 />
 
    
