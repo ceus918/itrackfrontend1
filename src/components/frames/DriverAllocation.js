@@ -9,11 +9,15 @@ import { getCurrentUser } from '../getCurrentUser';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
+import ViewShipment from "./ViewShipment"; // <-- add this
 
 
 const DriverAllocation = () => {
   const [allocation, setAllocations] = useState([]);
+  const [isViewShipmentOpen, setIsViewShipmentOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [newAllocation, setNewAllocation] = useState({
+    
     unitName: '',
     unitId: '',
     bodyColor: '',
@@ -30,6 +34,8 @@ const DriverAllocation = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [fullUser, setFullUser] = useState(null);
+  const [isRowModalOpen, setIsRowModalOpen] = useState(false); // NEW STATE
+  
 
   const validateConductionNumber = (value) => {
   const regex = /^[A-Za-z0-9]+$/; // only letters and numbers
@@ -256,31 +262,56 @@ const handleDownloadAllocationsPDF = () => {
                   <th>Action</th>
                 </tr>
               </thead>
-              <tbody>
-                {currentAllocations.map((item) => (
-                  <tr key={item._id}>
-                    <td>{new Date(item.date).toLocaleDateString('en-CA')}</td>
-                    <td>{item.unitName}</td>
-                    <td>{item.unitId}</td>
-                    <td>{item.bodyColor}</td>
-                    <td>{item.variation}</td>
-                    <td>{item.assignedDriver}</td>
-                    <td>
-  <span className={`status-badge ${item.status.toLowerCase().replace(' ', '-')}`}>
-    {item.status}
-  </span>
-</td>
-
-                    <td>
-                      <button className="action-btn" onClick={() => setEditAllocation(item)}>Edit</button>
-
-                       {' '}
-                      <button className="action-btn" onClick={() => handleDelete(item._id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+               <tbody>
+    {currentAllocations.map((item) => (
+      <tr 
+        key={item._id} 
+        onClick={() => {
+          setSelectedRow(item);
+          setIsViewShipmentOpen(true);
+        }}
+        style={{ cursor: "pointer" }}
+      >
+        <td>{new Date(item.date).toLocaleDateString('en-CA')}</td>
+        <td>{item.unitName}</td>
+        <td>{item.unitId}</td>
+        <td>{item.bodyColor}</td>
+        <td>{item.variation}</td>
+        <td>{item.assignedDriver}</td>
+        <td>
+          <span className={`status-badge ${item.status.toLowerCase().replace(' ', '-')}`}>
+            {item.status}
+          </span>
+        </td>
+        <td>
+          <button 
+            className="action-btn" 
+            onClick={(e) => { e.stopPropagation(); setEditAllocation(item); }}
+          >
+            Edit
+          </button>
+          {" "}
+          <button 
+            className="action-btn" 
+            onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
             </table>
+
+
+{/* View Shipments Modal */}
+  <ViewShipment
+    isOpen={isViewShipmentOpen}
+    onClose={() => setIsViewShipmentOpen(false)}
+    data={selectedRow}
+  />
+
+            
 
             {totalPages > 1 && (
   <div className="pagination-wrapper">

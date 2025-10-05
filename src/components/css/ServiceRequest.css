@@ -974,3 +974,53 @@ text-align: left !important;
 .loggedinuser{
 margin-right: 15px;
 }
+
+
+.viewshipment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewshipment-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.viewshipment-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+}
+
+.viewshipment-close-btn:hover {
+  color: red;
+}
+
+.viewshipment-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.viewshipment-info {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;  /* ✅ forces left alignment */
+  padding: 25px;
+  padding-top: 0px;
+  background-color: #ffffff; /* light background for contrast */
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+
+.viewshipment-map {
+  flex-shrink: 0;
+}

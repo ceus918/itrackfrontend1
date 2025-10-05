@@ -32,9 +32,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   { name: "Reports", icon: reportsIcon, path: "/reports" },
   { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
   { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
-  { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
+  // { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
   { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
-    { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
+  { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
   { name: "User Management", icon: usersIcon, path: "/users" },
 ];
 
