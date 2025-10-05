@@ -3,6 +3,7 @@ import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "../css/ServiceRequest.css";
+import 'leaflet/dist/leaflet.css';
 import truckIconImg from "../icons/truck1.png"; // adjust path
 
 // Custom truck icon
