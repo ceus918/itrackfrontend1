@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import 'leaflet/dist/leaflet.css';
 import L from "leaflet";
 import "../css/ServiceRequest.css";
-import 'leaflet/dist/leaflet.css';
+
 import truckIconImg from "../icons/truck1.png"; // adjust path
 
 // Custom truck icon
@@ -92,6 +93,15 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
       markerRef.current.openPopup();
     }
   }, [isOpen, mapCenter]);
+
+  // ✅ Add this new useEffect here
+useEffect(() => {
+  if (isOpen) {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 300);
+  }
+}, [isOpen]);
 
   if (!isOpen) return null;
 
