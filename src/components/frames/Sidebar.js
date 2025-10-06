@@ -29,13 +29,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const menuItems = [
   { name: "Dashboard", icon: dashboardIcon, path: "/dashboard" },
-  { name: "Reports", icon: reportsIcon, path: "/reports" },
+  
   { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
   { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
   // { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
   { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
   { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
   { name: "User Management", icon: usersIcon, path: "/users" },
+  { name: "Reports", icon: reportsIcon, path: "/reports" },
 ];
 
   // Filter menu for Sales Agent, Manager, and Supervisor

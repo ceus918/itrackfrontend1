@@ -1022,5 +1022,24 @@ margin-right: 15px;
 
 
 .viewshipment-map {
-  flex-shrink: 0;
+  height: 450px;
+  width: 900px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 }
+
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .viewshipment-map {
+    width: 100%;
+    height: 300px;
+  }
+}
+
