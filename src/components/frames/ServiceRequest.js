@@ -185,10 +185,29 @@ const ServiceRequest = () => {
   
 
   const handleDeleteRequest = (id) => {
-    axios.delete(`https://itrack-web-backend.onrender.com/api/deleteRequest/${id}`, { withCredentials: true })
-      .then(() => fetchRequests())
-      .catch((err) => console.log(err));
-  };
+  const deletedRequest = requests.find(req => req._id === id);
+
+  // ✅ Step 1: Ask for confirmation before deleting
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete the request for "${deletedRequest.unitName}" with Conduction Number "${deletedRequest.vehicleRegNo}"?`
+  );
+
+  if (!confirmDelete) {
+    return; // ❌ Cancel delete if user pressed Cancel
+  }
+
+  // ✅ Step 2: Proceed only if confirmed
+  axios.delete(`https://itrack-web-backend.onrender.com/api/deleteRequest/${id}`, { withCredentials: true })
+    .then(() => {
+      fetchRequests();
+      alert(`Request for "${deletedRequest.unitName}" has been successfully deleted.`);
+    })
+    .catch((err) => {
+      console.error(err);
+      alert('Failed to delete request. Please try again.');
+    });
+};
+
 
   const handleDownloadRequestsPDF = () => {
   const doc = new jsPDF();

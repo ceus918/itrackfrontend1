@@ -12,12 +12,12 @@ import { getCurrentUser } from '../getCurrentUser';
 const Inventory = () => {
   const [stock, setStock] = useState([]);
   const [newStock, setNewStock] = useState({
-    unitName: '',
-    unitId: '',
-    bodyColor: '',
-    variation: '',
-    quantity: 1 // Added quantity field
-  });
+  unitName: '',
+  unitId: '',
+  bodyColor: '',
+  variation: ''
+});
+
 
   const [editStock, setEditStock] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -86,7 +86,7 @@ const validateConductionNumber = (value) => {
   axios.post("https://itrack-web-backend.onrender.com/api/createStock", newStock)
       .then(() => {
         fetchStock();
-        setNewStock({ unitName: '', unitId: '', bodyColor: '', variation: '', quantity: 1 }); // Reset quantity to 1
+        setNewStock({ unitName: '', unitId: '', bodyColor: '', variation: ''}); // Reset quantity to 1
         setIsCreateModalOpen(false);
       })
       .catch((error) => console.log(error));
@@ -129,6 +129,16 @@ const validateConductionNumber = (value) => {
   const handleDeleteStock = (id) => {
   const deletedStock = stock.find(item => item._id === id);
 
+  // ✅ Step 1: Ask for confirmation
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete "${deletedStock.unitName}" with Conduction Number "${deletedStock.unitId}"?`
+  );
+
+  if (!confirmDelete) {
+    return; // Cancel delete if user presses Cancel
+  }
+
+  // ✅ Step 2: Proceed only if confirmed
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteStock/${id}`)
     .then(() => {
       setChangeLogs(prev => [
@@ -141,9 +151,14 @@ const validateConductionNumber = (value) => {
         }
       ]);
       fetchStock();
+      alert(`"${deletedStock.unitName}" has been successfully deleted.`);
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      console.error(error);
+      alert('Failed to delete stock. Please try again.');
+    });
 };
+
 
 
 
@@ -220,16 +235,16 @@ const handleDownloadInventoryPDF = () => {
     doc.text('Inventory Report', 14, 15);
 
     const inventoryData = stock.map(item => [
-      item.unitName,
-      item.unitId,
-      item.bodyColor,
-      item.variation,
-      item.quantity,
-      item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : 'N/A'
-    ]);
+  item.unitName,
+  item.unitId,
+  item.bodyColor,
+  item.variation,
+  item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : 'N/A'
+]);
 
-    autoTable(doc, {
-      head: [['Unit Name', 'Conduction Number', 'Body Color', 'Variation', 'Quantity', 'Date Added']],
+autoTable(doc, {
+  head: [['Unit Name', 'Conduction Number', 'Body Color', 'Variation', 'Date Added']],
+
       body: inventoryData,
       startY: 20,
       theme: 'grid',
@@ -423,14 +438,6 @@ const handleDownloadInventoryPDF = () => {
 
           </div>
 
-          <div className="modal-form-group">
-            <label>Quantity</label>
-            <input
-              type="number"
-              value={newStock.quantity}
-              onChange={(e) => setNewStock({ ...newStock, quantity: parseInt(e.target.value, 10) || 1 })}
-            />
-          </div>
         </div>
         <div className="modal-buttons">
           <button className="create-btn1" onClick={handleCreateStock}>Add</button>
@@ -489,14 +496,6 @@ const handleDownloadInventoryPDF = () => {
 
           </div>
 
-          <div className="modal-form-group">
-            <label>Quantity</label>
-            <input
-              type="number"
-              value={editStock.quantity}
-              disabled // Make quantity not editable in edit modal
-            />
-          </div>
         </div>
         <div className="modal-buttons">
           <button className="create-btn1" onClick={() => handleUpdateStock(editStock._id)}>Save</button>
@@ -526,7 +525,8 @@ const handleDownloadInventoryPDF = () => {
               <th>Body Color</th>
               <th>Variation</th>
               <th>Age (In Storage)</th>
-              <th>Quantity</th> {/* Added Quantity column header */}
+              <th>Date Added</th>
+ {/* Added Quantity column header */}
               {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && <th>Actions</th>}
             </tr>
           </thead>
@@ -541,7 +541,8 @@ const handleDownloadInventoryPDF = () => {
                 <td>{stockItem.bodyColor}</td>
                 <td>{stockItem.variation}</td>
                 <td>{getAgeString(stockItem.createdAt)}</td> 
-                <td>{stockItem.quantity}</td> {/* Display quantity in the table */}
+                <td>{stockItem.createdAt ? new Date(stockItem.createdAt).toLocaleDateString('en-CA') : 'N/A'}</td>
+ {/* Display quantity in the table */}
                 {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
                   <td>
                     <button className="action-btn" onClick={() => setEditStock(stockItem)}>Edit</button>{' '}

@@ -129,10 +129,29 @@ const DriverAllocation = () => {
 
 
   const handleDelete = (id) => {
+  const deletedAllocation = allocation.find(item => item._id === id);
+
+  // ✅ Step 1: Ask for confirmation before deleting
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete "${deletedAllocation.unitName}" with Conduction Number "${deletedAllocation.unitId}"?`
+  );
+
+  if (!confirmDelete) {
+    return; // ❌ Cancel delete if user presses Cancel
+  }
+
+  // ✅ Step 2: Proceed only if confirmed
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteAllocation/${id}`, { withCredentials: true })
-      .then(() => fetchAllocations())
-      .catch((err) => console.log(err));
-  };
+    .then(() => {
+      fetchAllocations();
+      alert(`"${deletedAllocation.unitName}" has been successfully deleted.`);
+    })
+    .catch((err) => {
+      console.error(err);
+      alert('Failed to delete allocation. Please try again.');
+    });
+};
+
 
   const [drivers, setDrivers] = useState([]);
 

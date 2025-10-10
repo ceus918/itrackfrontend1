@@ -58,10 +58,29 @@ const ManageUser = () => {
   };
 
   const handleDeleteUser = (id) => {
-    axios.delete(`https://itrack-web-backend.onrender.com/api/deleteUser/${id}`)
-      .then(() => fetchUsers())
-      .catch((error) => console.log(error));
-  };
+  const deletedUser = user.find(u => u._id === id);
+
+  // ✅ Step 1: Ask for confirmation before deleting
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete the user "${deletedUser.name}" with email "${deletedUser.email}"?`
+  );
+
+  if (!confirmDelete) {
+    return; // ❌ Cancel delete if user pressed Cancel
+  }
+
+  // ✅ Step 2: Proceed only if confirmed
+  axios.delete(`https://itrack-web-backend.onrender.com/api/deleteUser/${id}`)
+    .then(() => {
+      fetchUsers();
+      alert(`"${deletedUser.name}" has been successfully deleted.`);
+    })
+    .catch((error) => {
+      console.error(error);
+      alert('Failed to delete user. Please try again.');
+    });
+};
+
 
   const handleCreateUser = () => {
   if (!newUser.name || !newUser.phoneno || !newUser.email || !newUser.password || !newUser.role) {
