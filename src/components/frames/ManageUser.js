@@ -28,6 +28,7 @@ const ManageUser = () => {
   const [fullUser, setFullUser] = useState(null);
   const [activeTab, setActiveTab] = useState('users');
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState('');
 
   useEffect(() => {
     getCurrentUser().then(user => {
@@ -162,14 +163,17 @@ const ManageUser = () => {
     const [searchTerm, setSearchTerm] = useState('');
   
   const filteredStock = user.filter((req) => {
-  const searchValue = searchTerm.toLowerCase(); // or searchTerm if you're using that
-  return (
+  const searchValue = searchTerm.toLowerCase();
+  const matchesSearch =
     String(req.name).toLowerCase().includes(searchValue) ||
     String(req.phoneno).toLowerCase().includes(searchValue) ||
     String(req.email).toLowerCase().includes(searchValue) ||
     String(req.password).toLowerCase().includes(searchValue) ||
-    String(req.role).toLowerCase().includes(searchValue)
-  );
+    String(req.role).toLowerCase().includes(searchValue);
+
+  const matchesRole = roleFilter ? req.role === roleFilter : true;
+
+  return matchesSearch && matchesRole;
 });
 
 const [currentPage, setCurrentPage] = useState(1);
@@ -199,39 +203,116 @@ const totalPages = Math.ceil(filteredStock.length / usersPerPage);
           
           {activeTab === 'users' && (
             <div className="content">
-              <div className="user-management-header" >
-                <div className="search-container">
-                  <div className="search-input-wrapper">
-                    <input
-                      id="searchInput"
-                      type="text"
-                      placeholder="Search..."
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                    />
-                    {searchInput && (
-                      <button
-                        type="button"
-                        className="clear-button"
-                        onClick={() => { setSearchInput(''); setSearchTerm(''); }}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    className="search-button-icon-button"
-                    onClick={() => setSearchTerm(searchInput)}
-                    aria-label="Search"
-                  >
-                    <img src={searchIcon} alt="Search" className="search-icon" />
-                  </button>
-                </div>
-                <button className="create-btn" onClick={() => setIsCreateModalOpen(true)}>
-                  <img src={addIcon} alt="Add" className="add-icon" />
-                  Add User
-                </button>
-              </div>
+              <div className="user-management-header">
+  <div className="search-container">
+    <div className="search-input-wrapper">
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Search..."
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+      />
+      {searchInput && (
+        <button
+          type="button"
+          className="clear-button"
+          onClick={() => { setSearchInput(''); setSearchTerm(''); }}
+        >
+          ✕
+        </button>
+      )}
+    </div>
+    <button
+      className="search-button-icon-button"
+      onClick={() => setSearchTerm(searchInput)}
+      aria-label="Search"
+    >
+      <img src={searchIcon} alt="Search" className="search-icon" />
+    </button>
+  </div>
+
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <button
+    className="filterbtn"
+    style={{ fontSize: '11px', display: 'flex', alignItems: 'center', marginRight: 5, gap: 3 }}
+    tabIndex={0}
+    onClick={e => {
+      const dropdown = document.getElementById('filter-dropdown-panel');
+      if (dropdown)
+        dropdown.style.display =
+          dropdown.style.display === 'block' ? 'none' : 'block';
+    }}
+  >
+    <img
+      src={require('../icons/sort.png')}
+      style={{ width: 12, height: 12, marginLeft: 4 }}
+    />
+    Filter
+  </button>
+
+  <div
+    id="filter-dropdown-panel"
+    style={{
+      display: 'none',
+      background: '#fff',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+      borderRadius: 6,
+      padding: '12px 16px',
+      minWidth: 180,
+      zIndex: 10,
+      position: 'absolute',
+      marginTop: 38,
+    }}
+  >
+    <div style={{ marginBottom: 10 }}>
+      <label
+        style={{
+          fontWeight: 600,
+          fontSize: 12,
+          marginBottom: 6,
+          display: 'block',
+          textAlign: 'left',
+        }}
+      >
+        User Role
+      </label>
+      <select
+        className="filter-dropdown"
+        onChange={e => setRoleFilter(e.target.value)}
+        value={
+          roleFilter &&
+          ['Admin', 'Sales Agent', 'Driver', 'Manager', 'Supervisor', 'Dispatch'].includes(
+            roleFilter
+          )
+            ? roleFilter
+            : ''
+        }
+        style={{ width: '100%', fontSize: 12, padding: '6px 10px', borderRadius: 4 }}
+      >
+        <option value="">All</option>
+        <option value="Admin">Admin</option>
+        <option value="Sales Agent">Sales Agent</option>
+        <option value="Driver">Driver</option>
+        <option value="Manager">Manager</option>
+        <option value="Supervisor">Supervisor</option>
+        <option value="Dispatch">Dispatch</option>
+      </select>
+    </div>
+
+    <div style={{ textAlign: 'right', marginTop: 8 }}>
+     
+    </div>
+  </div>
+</div>
+
+
+  <button className="create-btn" onClick={() => setIsCreateModalOpen(true)}>
+    <img src={addIcon} alt="Add" className="add-icon" />
+    Add User
+  </button>
+</div>
+
               {isCreateModalOpen && (
                 <div className="modal-overlay">
                   <div className="modal">
