@@ -318,7 +318,7 @@ autoTable(doc, {
     <img src={filterIcon} alt="Filter" className="button-icon1" />
   </button>
 
-  <button className="pdf-btn" onClick={handleDownloadPDF}>Download<img src={downloadIcon} alt="Download" className="button-icon" />
+  <button className="pdf-btn" onClick={handleDownloadPDF}>Print PDF<img src={downloadIcon} alt="Download" className="button-icon" />
     
   </button>
 </div>
