@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import '../css/Dashboard.css';
@@ -13,10 +13,22 @@ const Dashboard = () => {
   const [stockCount, setStockCount] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [fullUser, setFullUser] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+
+  const fileInputRef = useRef(null);
   const [stockData, setStockData] = useState([]);
   const [allocation, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+const [profileData, setProfileData] = useState({
+  name: '',
+  phoneno: '',
+  picture: ''
+});
+ const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+
+  
 
 
   // Enhanced color palette for the pie chart
@@ -113,7 +125,7 @@ const [inTransitCount, setInTransitCount] = useState(0);
    const cards = [
     { title: "Total Stocks", value: stockCount, route: "/inventory" },
     { title: "Finished Vehicle Preparation", value: completedCount, dark: true, route: "/reports" },
-    { title: "Ongoing Shipment", value: inTransitCount, route: "/shipments" },
+    { title: "Ongoing Shipment", value: inTransitCount, route: "/driverallocation" },
     { title: "Ongoing Vehicle Preparation", value: ongoingCount, route: "/servicerequest" },
   ];
 
@@ -179,21 +191,226 @@ useEffect(() => {
     fetchAllocations();
   }, []);
 
+  
+  
+  const logAuditTrail = async (action, resource, performedBy, details) => {
+  try {
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/audit-trail",
+      {
+        action,
+        resource,
+        performedBy,
+        details, // { message: "Profile picture changed" }
+        timestamp: new Date().toISOString(),
+      },
+      { withCredentials: true }
+    );
+  } catch (err) {
+    console.error("Failed to log audit trail:", err);
+  }
+};
+
+
+
+
+
+  const handleProfileClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleProfileChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const newImage = reader.result;
+      setProfileData((prev) => ({ ...prev, picture: newImage }));
+      setProfileImage(newImage);
+
+      if (fullUser && fullUser.email) {
+        localStorage.setItem(`profileImage_${fullUser.email}`, newImage);
+      }
+
+      // ✅ Create a simple audit log
+      await axios.post(
+        "https://itrack-web-backend.onrender.com/api/audit-trail",
+        {
+          action: "Update",
+          resource: "Profile Image",
+          performedBy: fullUser.email || fullUser.name,
+          details: "Profile picture changed",
+          timestamp: new Date().toISOString(),
+        },
+        { withCredentials: true }
+      );
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+
+
+
+  const handleUpdateProfile = () => {
+  if (!profileData.name || !profileData.phoneno) {
+    alert("Name and phone number are required.");
+    return;
+  }
+
+  const updatedData = {
+    name: profileData.name,
+    phoneno: profileData.phoneno,
+    picture: profileData.picture, // ✅ include the image
+  };
+
+  axios
+    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, updatedData)
+    .then(() => {
+      alert("Profile updated successfully!");
+      setFullUser({ ...fullUser, ...updatedData });
+      if (fullUser && fullUser.email) {
+  localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
+}
+
+      setIsProfileModalOpen(false);
+    })
+    .catch((error) => {
+      console.error("Update failed:", error);
+      alert("Failed to update profile.");
+    });
+};
+
+
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (!e.target.closest(".profile-wrapper")) {
+      setIsDropdownOpen(false);
+    }
+  };
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
+
+useEffect(() => {
+  if (fullUser && fullUser.email) {
+    const savedImage = localStorage.getItem(`profileImage_${fullUser.email}`);
+    if (savedImage) {
+      setProfileImage(savedImage);
+    }
+  }
+}, [fullUser]);
+
+
+
+
   return (
     <div className="app">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="main">
         <header className="header">
-          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            ☰
-          </button>
+          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <h3 className="header-title1">Dashboard</h3>
-          {fullUser && fullUser.name && (
-            <div className="loggedinuser" style={{ marginLeft: 'auto', fontWeight: 500, fontSize: 15
-             }}>
-              Welcome, {fullUser.name}
-            </div>
-          )}
+
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0px' }}>
+            {fullUser && fullUser.name && (
+  <div
+    className="loggedinuser"
+    onClick={() => {
+      setProfileData({
+        name: fullUser.name,
+        phoneno: fullUser.phoneno,
+        picture: fullUser.picture || ''
+      });
+      setIsProfileModalOpen(true);
+    }}
+    style={{
+   
+      fontWeight: 500,
+      fontSize: 15,
+      cursor: 'pointer',
+  
+    }}
+  >
+    Welcome, {fullUser.name}
+  </div>
+)}
+
+
+            <div
+  className="profile-wrapper"
+  style={{ position: "relative", cursor: "pointer" }}
+>
+  {/* Profile image */}
+  <img
+  src={
+    fullUser?.picture ||
+    profileImage ||
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+  }
+  alt=""
+  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+  style={{
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    border: "2px solid #ffffff",
+    objectFit: "cover",
+  }}
+/>
+
+
+  {/* Hidden file input */}
+  <input
+    type="file"
+    accept="image/*"
+    ref={fileInputRef}
+    onChange={handleProfileChange}
+    style={{ display: "none" }}
+  />
+
+  {/* Dropdown menu */}
+  {isDropdownOpen && (
+    <div
+      className="profile-dropdown"
+      style={{
+        position: "absolute",
+        top: "50px",
+        right: 0,
+        backgroundColor: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        zIndex: 1000,
+        width: "150px",
+      }}
+    >
+      <div
+        onClick={() => {
+          setIsDropdownOpen(false);
+          setProfileData({
+            name: fullUser.name,
+            phoneno: fullUser.phoneno,
+            picture: fullUser.picture || "",
+          });
+          setIsProfileModalOpen(true);
+        }}
+        style={{
+          padding: "10px 12px",
+          cursor: "pointer",
+          color: "#393939ff",
+          fontSize: "13px",
+          borderBottom: "1px solid #eee",
+        }}
+      >
+        Edit Profile
+      </div>
+    </div>
+  )}
+</div>
+
+          </div>
         </header>
         <div className="dashboard-content">
           <div className="cards">
@@ -215,234 +432,309 @@ useEffect(() => {
             ))}
           </div>
 
-          <div className="dashboard-sections" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <div style={{ 
-            width: '500px', 
-            minWidth: '320px',
-            padding: '24px',
-            backgroundColor: '#ffffff',
-            borderRadius: '16px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            marginBottom: '2px'
-          }}>
-            <div style={{ 
-              textAlign: 'center', 
-              marginBottom: '2px',
-             
-              paddingBottom: '1px'
-            }}>
-              <h5 style={{ 
-                margin: 0, 
-                fontSize: '15px',
-                fontWeight: '700',
-                color: '#111827',
-                letterSpacing: '-0.025em'
-              }}>
-                Stocks
-              </h5>
-              <p style={{ 
-                margin: '8px 0 0 0', 
-                fontSize: '14px',
-                color: '#6b7280',
-                fontWeight: '500'
-              }}>
-                {/* Total Items: {stockData.reduce((sum, item) => sum + item.value, 0)} */}
-              </p>
-            </div>
-            
-            {stockData.length > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ flex: 1 }}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={stockData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        innerRadius={30}
-                        paddingAngle={2}
-                        labelLine={false}
-                        label={renderCustomLabel}
-                      >
-                        {stockData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={CHART_COLORS[index % CHART_COLORS.length]}
-                            stroke="#ffffff"
-                            strokeWidth={2}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                {/* Custom Legend */}
-                <div style={{ 
-                  marginLeft: '40px',
-                  marginRight: '20px',
-                  minWidth: '200px'
-                }}>
-                  <div style={{
-                  
-                    paddingBottom: '8px',
-                    marginBottom: '40px',
-                  
-                  }}>
-                    <span style={{
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom:'40px',
-                   
-                    }}>
-                      
-                      
-                    </span>
-                  </div>
-                  {stockData.map((item, index) => (
-                    <div key={index} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '12px',
-                      fontSize: '14px'
-                    }}>
-                      
-                      <div style={{
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-                        marginRight: '12px'
-                      }}></div>
-                      <span style={{
-                        flex: 1,
-                        color: '#374151',
-                        fontWeight: '500'
-                      }}>
-                        {item.name}
-                      </span>
-                    
-                      <span style={{
-                        color: '#111827',
-                        fontWeight: '600'
-                      }}>
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                height: '300px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#9ca3af',
-                fontSize: '16px',
-                fontWeight: '500'
-              }}>
-                No stock data available
-              </div>
-            )}
-          </div>
-          
-          <div className="recent-section" style={{ flex: 1, minWidth: '320px', maxWidth: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '10px' }}>
-            <h4 className="section-title">Recent In Progress Vehicle Preparation</h4>
-            <div className="table-container">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Conduction Number</th>
-                    <th>Service</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentPreparations.length === 0 ? (
-                    <tr>
-                      <td colSpan="3" style={{ textAlign: 'center', color: '#888' }}>No recent in progress vehicle preparations found.</td>
-                    </tr>
-                  ) : (
-                    recentPreparations.map((prep, index) => (
-                      <tr key={index}>
-                        <td className="vehicle-reg">{prep.vehicleRegNo || prep.unitId || '-'}</td>
-                        <td className="service-cell">
-                          {Array.isArray(prep.service)
-                            ? prep.service.length > 2
-                              ? `${prep.service.slice(0, 2).join(', ')}...`
-                              : prep.service.join(', ')
-                            : (prep.service || '-')}
-                        </td>
-                        <td>
-                          <span className={`status-badge ${prep.status ? prep.status.toLowerCase().replace(' ', '-') : ''}`}>
-                            {prep.status || 'In Progress'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+
+         {isProfileModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">Edit Profile</h2>
+
+      <div className="profile-modal-content">
+        {/* Profile Image Section */}
+        <div className="profile-modal-image-section">
+          <img
+            src={
+              fullUser?.picture ||
+              profileImage ||
+              "https://via.placeholder.com/120"
+            }
+            alt="Profile"
+            className="profile-modal-image"
+            onClick={() =>
+              document.getElementById("profilePicInput").click()
+            }
+          />
+          <input
+            type="file"
+            id="profilePicInput"
+            style={{ display: "none" }}
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setProfileData({ ...profileData, picture: reader.result });
+                };
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
+          <small className="profile-modal-image-note">
+            Click image to change
+          </small>
+        </div>
+
+        {/* Form Section */}
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Name</label>
+            <input
+              type="text"
+              className="profile-modal-input"
+              value={profileData.name}
+              onChange={(e) =>
+                setProfileData({ ...profileData, name: e.target.value })
+              }
+            />
           </div>
 
- {/* Pending & In Transit Shipments Table */}
-<div className="table-container" style={{ marginTop: "10px" }}>
-  <h4 className="section-title">Recent Assigned Shipments</h4>
-  <table>
-    <thead>
-      <tr>
-       
-        <th>Unit Name</th>
-        
-    
-        <th>Variation</th>
-        <th>Assigned Driver</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {allocation.filter(item => item.status === "Pending" || item.status === "In Transit").length === 0 ? (
-        <tr>
-          <td colSpan="7" style={{ textAlign: "center", color: "#888" }}>
-            No pending or in transit shipments found.
-          </td>
-        </tr>
-      ) : (
-        allocation
-          .filter(item => item.status === "Pending" || item.status === "In Transit")
-          .sort((a, b) => new Date(b.date) - new Date(a.date)) // ✅ newest first
-          .slice(0, 3) // ✅ only top 3
-          .map(item => (
-            <tr key={item._id}>
-              
-              <td>{item.unitName}</td>
-             
-    
-              <td>{item.variation}</td>
-              <td>{item.assignedDriver}</td>
-              <td>
-                <span className={`status-badge ${item.status.toLowerCase().replace(" ", "-")}`}>
-                  {item.status}
-                </span>
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Phone Number</label>
+            <input
+              type="text"
+              className="profile-modal-input"
+              value={profileData.phoneno}
+              onChange={(e) =>
+                setProfileData({ ...profileData, phoneno: e.target.value })
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="profile-modal-actions">
+        <button
+          className="profile-modal-btn profile-modal-btn-save"
+          onClick={handleUpdateProfile}
+        >
+          Save Changes
+        </button>
+        <button
+          className="profile-modal-btn profile-modal-btn-cancel"
+          onClick={() => setIsProfileModalOpen(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
+          <div className="dashboard-grid">
+  {/* 🥧 Pie Chart */}
+  
+  <div className="dashboard-item">
+    <h4 className="section-title">Stocks Overview</h4>
+    {stockData.length > 0 ? (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: "20px",
+    }}
+  >
+    {/* 🥧 Pie Chart (Left) */}
+    <div style={{ flex: "1 1 250px", minWidth: "250px", height: "250px" }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={stockData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={90}
+            labelLine={false}
+          >
+            {stockData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={CHART_COLORS[index % CHART_COLORS.length]}
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+
+    {/* 📊 Legend (Right) */}
+    <div
+      style={{
+        flex: "1 1 200px",
+        minWidth: "200px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        height: "100%",
+      }}
+    >
+      {stockData.map((item, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "8px",
+            fontSize: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+              marginRight: "10px",
+            }}
+          ></div>
+          <span style={{ flex: 1, color: "#374151", fontWeight: "500" }}>
+            {item.name}
+          </span>
+          <span style={{ color: "#111827", fontWeight: "600" }}>
+            {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+) : (
+  <p style={{ textAlign: "center", color: "#888" }}>
+    No stock data available
+  </p>
+)}
+
+
+
+
+  </div>
+
+  {/* 🚗 Table 1: In Progress Preparations */}
+  <div className="dashboard-item">
+    <h4 className="section-title">Recent In Progress Vehicle Preparation</h4>
+    <div className="table-container">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Conduction No.</th>
+            <th>Service</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recentPreparations.length === 0 ? (
+            <tr>
+              <td colSpan="3" style={{ textAlign: 'center', color: '#888' }}>
+                No recent in progress vehicle preparations.
               </td>
             </tr>
-          ))
-      )}
-    </tbody>
-  </table>
+          ) : (
+            recentPreparations.slice(0, 5).map((prep, index) => (
+              <tr key={index}>
+                <td>{prep.vehicleRegNo || prep.unitId || '-'}</td>
+                <td>
+                  {Array.isArray(prep.service)
+                    ? prep.service.join(', ')
+                    : prep.service || '-'}
+                </td>
+                <td>
+                  <span className={`status-badge ${prep.status?.toLowerCase().replace(' ', '-')}`}>
+                    {prep.status}
+                  </span>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {/* 🚚 Table 2: Shipments */}
+  <div className="dashboard-item">
+    <h4 className="section-title">Recent Assigned Shipments</h4>
+    <div className="table-container">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Unit Name</th>
+            <th>Variation</th>
+            <th>Assigned Driver</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allocation.filter(item => ["Pending", "In Transit"].includes(item.status)).length === 0 ? (
+            <tr>
+              <td colSpan="4" style={{ textAlign: "center", color: "#888" }}>
+                No pending or in transit shipments.
+              </td>
+            </tr>
+          ) : (
+            allocation
+              .filter(item => ["Pending", "In Transit"].includes(item.status))
+              .slice(0, 3)
+              .map(item => (
+                <tr key={item._id}>
+                  <td>{item.unitName}</td>
+                  <td>{item.variation}</td>
+                  <td>{item.assignedDriver}</td>
+                  <td>
+                    <span className={`status-badge ${item.status.toLowerCase().replace(" ", "-")}`}>
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {/* ✅ Table 3: Completed Requests */}
+  <div className="dashboard-item">
+    <h4 className="section-title">Recent Completed Requests</h4>
+    <div className="table-container">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Conduction No.</th>
+            <th>Completed Date</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allocation.filter(item => item.status === "Completed").length === 0 ? (
+            <tr>
+              <td colSpan="3" style={{ textAlign: "center", color: "#888" }}>
+                No completed requests.
+              </td>
+            </tr>
+          ) : (
+            allocation
+              .filter(item => item.status === "Completed")
+              .slice(0, 3)
+              .map(item => (
+                <tr key={item._id}>
+                  <td>{item.unitName}</td>
+                  <td>{new Date(item.date).toLocaleDateString()}</td>
+                  <td>{item.remarks || "-"}</td>
+                </tr>
+              ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-
-
-        </div>
 
         
         </div>

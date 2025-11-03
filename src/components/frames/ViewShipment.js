@@ -57,29 +57,36 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
   const markerRef = useRef(null);
 
   useEffect(() => {
-    if (!isOpen || !data?._id) return;
+  if (!isOpen || !data?._id) return;
 
-    const fetchCurrentLocation = async () => {
-      try {
-        const res = await axios.get(
-          `https://itrack-web-backend.onrender.com/api/getAllocation/${data._id}`,
-          { withCredentials: true }
-        );
+  const fetchCurrentLocation = async () => {
+    try {
+      const res = await axios.get(
+        `https://itrack-web-backend.onrender.com/api/getAllocation/${data._id}`,
+        { withCredentials: true }
+      );
 
-        const loc = res.data?.location; 
-        if (loc?.latitude && loc?.longitude) {
-          setCurrentLocation([loc.latitude, loc.longitude]);
+      const loc = res.data?.location;
+
+      if (loc?.latitude != null && loc?.longitude != null) {
+        const lat = Number(loc.latitude);
+        const lng = Number(loc.longitude);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setCurrentLocation([lat, lng]);
         }
-      } catch (err) {
-        console.error("Error fetching live location:", err);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching live location:", err);
+    }
+  };
 
-    fetchCurrentLocation();
-    const interval = setInterval(fetchCurrentLocation, 5000);
+  fetchCurrentLocation();
+  const interval = setInterval(fetchCurrentLocation, 5000);
 
-    return () => clearInterval(interval);
-  }, [isOpen, data?._id]);
+  return () => clearInterval(interval);
+}, [isOpen, data?._id]);
+ 
 
   const mapCenter =
     currentLocation && isValidLatLng(currentLocation[0], currentLocation[1])

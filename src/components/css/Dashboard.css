@@ -456,3 +456,204 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+  padding: 24px;
+}
+
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ✨ Hover Effects for Dashboard Grid Cards */
+.dashboard-item {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: all 0.25s ease-in-out;
+  transform: translateY(0);
+  cursor: pointer;
+}
+
+.dashboard-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+ 
+}
+
+/* Optional: add smooth scale on child elements for extra depth */
+
+
+.dashboard-item:hover table.data-table {
+  transform: scale(1.01);
+  transition: transform 0.3s ease;
+}
+
+
+
+
+
+
+/* Overlay background */
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal container */
+.profile-modal-container {
+  background: #fff;
+  width: 380px;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Title */
+.profile-modal-title {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+/* Content layout */
+.profile-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Image section */
+.profile-modal-image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-modal-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e50914;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.profile-modal-image:hover {
+  transform: scale(1.05);
+}
+
+.profile-modal-image-note {
+  margin-top: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #747474;
+}
+
+/* Form section */
+.profile-modal-form {
+  width: 100%;
+}
+
+.profile-modal-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+.profile-modal-label {
+  font-weight: 500;
+  font-size: 13px;
+  color: #000000;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.profile-modal-input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  
+  
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.profile-modal-input:focus {
+  border-color: #e50914;
+}
+
+/* Buttons */
+.profile-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.profile-modal-btn {
+  padding: 8px 16px;
+  border: none;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  
+  transition: background 0.2s ease;
+}
+
+.profile-modal-btn-save {
+  background: #e50914;
+  color: #fff;
+}
+
+.profile-modal-btn-save:hover {
+  background: #b40810;
+}
+
+.profile-modal-btn-cancel {
+  background: #ccc;
+  color: #000;
+}
+
+.profile-modal-btn-cancel:hover {
+  background: #aaa;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
