@@ -21,38 +21,55 @@ const TestDrive = () => {
 const [profileImage, setProfileImage] = useState('');
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+const [stock, setStock] = useState([]);
+const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+const [newStock, setNewStock] = useState({
+  unitName2: '',
+  unitId2: '',
+  bodyColor2: '',
+  variation2: '',
+});
+const [userRole, setUserRole] = useState(null);
+
+
+
 
 const fileInputRef = React.useRef(null);
 
 
   // FETCH INVENTORY VEHICLES + TEST DRIVE LIST
   useEffect(() => {
-    fetchVehicles();
-    fetchTestDrives();
-    getCurrentUser().then(user => {
-      if (user && user.email) {
-        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
-          .then(res => {
-            const found = res.data.find(u => u.email === user.email);
-            setFullUser(found);
-          })
-          .catch(() => setFullUser(null));
-      }
-    });
-  }, []);
+  fetchVehicles();
+  fetchTestDrives();
+  fetchStock(); // <-- add this line
+
+  getCurrentUser().then(user => {
+    if (user && user.email) {
+      axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+        .then(res => {
+          const found = res.data.find(u => u.email === user.email);
+          setFullUser(found);
+        })
+        .catch(() => setFullUser(null));
+    }
+  });
+}, []);
+
 
   const fetchVehicles = () => {
-    axios.get('https://itrack-web-backend.onrender.com/api/getStock')
+    axios.get('https://itrack-web-backend.onrender.com/api/getTestDriveInv')
+
       .then(res => {
         console.log(res.data); // 
         console.log(vehicles);
 
-        const availableVehicles = res.data.filter(v => v.quantity > 0);
+        const availableVehicles = res.data.filter(v => v.quantity2 > 0);
         setVehicles(availableVehicles);
       })
       .catch(err => console.error(err));
   };
 
+//Scheduled
   const fetchTestDrives = () => {
     axios.get('https://itrack-web-backend.onrender.com/api/getAllTestDrives')
       .then(res => setTestDrives(res.data))
@@ -79,7 +96,7 @@ const fileInputRef = React.useRef(null);
 
   const getVehicleInfo = (vehicleId) => {
     const vehicle = vehicles.find(v => v._id === vehicleId);
-    return vehicle ? `${vehicle.unitName} - ${vehicle.variation} (${vehicle.bodyColor})` : 'Vehicle Info';
+    return vehicle ? `${vehicle.unitName2} - ${vehicle.variation2} (${vehicle.bodyColor2})` : 'Vehicle Info';
   };
 
   const handleDelete = (id) => {
@@ -190,6 +207,131 @@ useEffect(() => {
   document.addEventListener("click", handleClickOutside);
   return () => document.removeEventListener("click", handleClickOutside);
 }, []);
+
+
+const handleAddStockChange = (e) => {
+  const { name, value } = e.target;
+  setNewStock((prev) => ({ ...prev, [name]: value }));
+};
+
+
+
+const handleAddStockSubmit = async (e) => {
+  e.preventDefault();
+
+  const { unitName2, unitId2, bodyColor2, variation2 } = newStock;
+  const conductionError = validateConductionNumber(unitId2);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  if (!unitName2 || !unitId2 || !bodyColor2 || !variation2) {
+    alert('All fields are required!');
+    return;
+  }
+
+  try {
+    await axios.post('https://itrack-web-backend.onrender.com/api/createTestDriveInv', newStock);
+    alert('✅ Test drive unit added successfully!');
+    setNewStock({ unitName2: '', unitId2: '', bodyColor2: '', variation2: '' });
+    setIsAddModalOpen(false);
+    fetchStock(); // refresh list
+  } catch (error) {
+    console.error('Error adding test drive unit:', error);
+    alert('❌ Failed to add test drive unit.');
+  }
+};
+
+
+const fetchStock = () => {
+  axios.get('https://itrack-web-backend.onrender.com/api/getTestDriveInv')
+    .then(res => setStock(res.data))
+    .catch(err => console.error('Error fetching test drive inventory:', err));
+};
+
+const handleDeleteStock = (id) => {
+  const deletedStock = stock.find(item => item._id === id);
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete "${deletedStock.unitName2}" with Conduction Number "${deletedStock.unitId2}"?`
+  );
+  if (!confirmDelete) return;
+
+  axios.delete(`https://itrack-web-backend.onrender.com/api/deleteTestDriveInv/${id}`)
+    .then(() => {
+      alert('✅ Deleted successfully!');
+      fetchStock();
+    })
+    .catch(() => alert('❌ Failed to delete.'));
+};
+
+
+
+const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+const [editStock, setEditStock] = useState({
+  _id: '',
+  unitName2: '',
+  unitId2: '',
+  bodyColor2: '',
+  variation2: '',
+});
+
+
+const handleEditStockClick = (stockItem) => {
+  setEditStock(stockItem);
+  setIsEditModalOpen(true);
+};
+
+const handleEditStockChange = (e) => {
+  setEditStock({ ...editStock, [e.target.name]: e.target.value });
+};
+
+const handleEditStockSubmit = async (e) => {
+  e.preventDefault();
+
+  const { unitName2, unitId2, bodyColor2, variation2 } = editStock;
+  const conductionError = validateConductionNumber(unitId2);
+  if (conductionError) {
+    alert(conductionError);
+    return;
+  }
+
+  if (!unitName2 || !unitId2 || !bodyColor2 || !variation2) {
+    alert('All fields are required!');
+    return;
+  }
+
+  try {
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateTestDriveInv/${editStock._id}`,
+      editStock
+    );
+    alert('✅ Test drive unit updated successfully!');
+    setIsEditModalOpen(false);
+    fetchStock(); // Refresh list
+  } catch (error) {
+    console.error('Error updating test drive unit:', error);
+    alert('❌ Failed to update test drive unit.');
+  }
+};
+
+
+
+const validateConductionNumber = (value) => {
+  const regex = /^[A-Za-z0-9]+$/; // Only letters and numbers
+  if (!value) {
+    return "Conduction Number is required.";
+  }
+  if (!regex.test(value)) {
+    return "Conduction Number must be alphanumeric (letters and numbers only).";
+  }
+  if (value.length < 6 || value.length > 8) {
+    return "Conduction Number must be 6 to 8 characters.";
+  }
+  return null;
+};
+
+
 
 
 
@@ -386,54 +528,293 @@ useEffect(() => {
 
 
         <div className="testdrive-content">
-  <h3>Schedule a Test Drive</h3>
 
-  <div className="testdrive-modal">
-    <form onSubmit={handleSubmit} className="testdrive-form">
-      <div className="testdrive-form-group">
-        <label>Available Vehicle <span style={{color: 'red'}}>*</span></label>
-        <select name="vehicleId" value={formData.vehicleId} onChange={handleChange} required>
-          <option value="">Select a Vehicle</option>
-          {vehicles.filter(vehicle => !testDrives.some(td => td.vehicleId === vehicle._id))
-            .map(vehicle => (
-              <option key={vehicle._id} value={vehicle._id}>
-                {vehicle.unitName} - {vehicle.variation} ({vehicle.bodyColor}) | Available: {vehicle.quantity}
-              </option>
-            ))}
-        </select>
-      </div>
 
-      <div className="testdrive-form-group">
-        <label>Date *</label>
-        <input type="date" name="date" value={formData.date} onChange={handleChange} required />
-      </div>
-
-      <div className="testdrive-form-group">
-        <label>Time *</label>
-        <input type="time" name="time" value={formData.time} onChange={handleChange} required />
-      </div>
-
-      <div className="testdrive-form-group">
-        <label>Name *</label>
-        <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-      </div>
-
-      <div className="testdrive-form-group">
-        <label>Contact Number *</label>
-        <input type="text" name="contact" value={formData.contact} onChange={handleChange} required />
-      </div>
-    </form>
-
-    <div>
-      <button type="button" className="testdrive-btn" onClick={handleSubmit}>Schedule</button>
+        
+{/* ✅ Test Drive Inventory Section */}
+{fullUser && fullUser.role === 'Admin' && (
+<div className="testdrive-section" style={{ marginTop: '40px' }}>
+  <div className="testdrive-header">
+    <h3 className="testdrive-title">Test Drive Inventory</h3>
+    <div className="testdrive-btn-container">
+      <button
+        onClick={() => setIsAddModalOpen(true)}
+        className="testdrive-btn2"
+      >
+        + Add
+      </button>
     </div>
-
-    {success && (
-      <p className={success.includes('successfully') ? 'testdrive-success' : 'testdrive-error'}>
-        {success}
-      </p>
-    )}
   </div>
+
+  <div className="testdrive-table-container">
+    <table className="testdrive-table">
+      <thead>
+        <tr>
+          <th>Unit Name</th>
+          <th>Conduction Number</th>
+          <th>Body Color</th>
+          <th>Variation</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {stock.length > 0 ? (
+          stock.map((item) => (
+            <tr key={item._id}>
+              <td>{item.unitName2}</td>
+              <td>{item.unitId2}</td>
+              <td>{item.bodyColor2}</td>
+              <td>{item.variation2}</td>
+              <td>
+                <div className="testdrive-dropdown">
+                  <button
+                    className="action-btn edit"
+                    onClick={() => handleEditStockClick(item)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="action-btn delete"
+                    onClick={() => handleDeleteStock(item._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+              No test drive inventory available.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
+)}
+
+
+{/* ✅ Add Modal */}
+{isAddModalOpen && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <p className="modaltitle">Add Test Drive Unit</p>
+      <div className="modalline"></div>
+
+      <div className="modal-content">
+        <div className="modal-form">
+          <div className="modal-form-group">
+            <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="unitName2"
+              value={newStock.unitName2}
+              onChange={handleAddStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="unitId2"
+              value={newStock.unitId2}
+              onChange={handleAddStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Body Color <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="bodyColor2"
+              value={newStock.bodyColor2}
+              onChange={handleAddStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Variation <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="variation2"
+              value={newStock.variation2}
+              onChange={handleAddStockChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="modal-buttons">
+          <button className="create-btn1" onClick={handleAddStockSubmit}>Add</button>
+          <button className="cancel-btn1" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ✅ Edit Modal */}
+{isEditModalOpen && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <p className="modaltitle">Edit Test Drive Unit</p>
+      <div className="modalline"></div>
+
+      <div className="modal-content">
+        <div className="modal-form">
+          <div className="modal-form-group">
+            <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="unitName2"
+              value={editStock.unitName2}
+              onChange={handleEditStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="unitId2"
+              value={editStock.unitId2}
+              onChange={handleEditStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Body Color <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="bodyColor2"
+              value={editStock.bodyColor2}
+              onChange={handleEditStockChange}
+              required
+            />
+          </div>
+
+          <div className="modal-form-group">
+            <label>Variation <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              name="variation2"
+              value={editStock.variation2}
+              onChange={handleEditStockChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="modal-buttons">
+          <button className="create-btn1" onClick={handleEditStockSubmit}>Save</button>
+          <button className="cancel-btn1" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
+
+
+
+  {/* Hide this whole section when userRole is 'Admin' */}
+{fullUser && fullUser.role !== 'Admin' && (
+  <>
+    <h3>Schedule a Test Drive</h3>
+
+    <div className="testdrive-modal">
+      <form onSubmit={handleSubmit} className="testdrive-form">
+        <div className="testdrive-form-group">
+          <label>Available Vehicle <span style={{ color: 'red' }}>*</span></label>
+          <select
+            name="vehicleId"
+            value={formData.vehicleId}
+            onChange={handleChange}
+            required
+            className="styled-select"
+          >
+            <option value="">Select a Vehicle</option>
+            {vehicles
+              .filter(vehicle => !testDrives.some(td => td.vehicleId === vehicle._id))
+              .map(vehicle => (
+                <option key={vehicle._id} value={vehicle._id}>
+                  {vehicle.unitName2} — {vehicle.variation2} ({vehicle.bodyColor2}) | ID: {vehicle.unitId2}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div className="testdrive-form-group">
+          <label>Date</label>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="testdrive-form-group">
+          <label>Time</label>
+          <input
+            type="time"
+            name="time"
+            value={formData.time}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="testdrive-form-group">
+          <label>Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="testdrive-form-group">
+          <label>Contact Number</label>
+          <input
+            type="text"
+            name="contact"
+            value={formData.contact}
+            onChange={handleChange}
+            required
+          />
+        </div>
+      </form>
+
+      <div>
+        <button type="button" className="testdrive-btn" onClick={handleSubmit}>Schedule</button>
+      </div>
+
+      {success && (
+        <p className={success.includes('successfully') ? 'testdrive-success' : 'testdrive-error'}>
+          {success}
+        </p>
+      )}
+    </div>
+  </>
+)}
+
+
 
   <div className="testdrive-spacer"></div>
 

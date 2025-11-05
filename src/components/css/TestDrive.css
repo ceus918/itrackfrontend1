@@ -186,3 +186,77 @@
 .loggedinuser{
 margin-right: 15px;
 }
+
+
+
+
+
+
+
+
+
+.testdrive-btn-container {
+
+  right: 0;
+}
+
+
+.testdrive-btn2 {
+  background-color: #e60000;
+  color: white;
+  border: none;
+  padding: 9px 35px;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 40px;
+  min-width: 80px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto; /* ✅ Moves button to the right */
+}
+
+
+
+
+
+/* Dropdown styling */
+.styled-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none; /* Removes default arrow for better custom style */
+  background-image: linear-gradient(to bottom, #fff, #f9f9f9);
+}
+
+.styled-select:hover {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+.styled-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+}
+
+/* Option styling (limited by browser, but still enhances look) */
+.styled-select option {
+  padding: 10px;
+  background: #fff;
+  color: #333;
+}
+
+.styled-select option:hover {
+  background-color: #f2f2f2;
+}
