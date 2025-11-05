@@ -1043,3 +1043,17 @@ margin-right: 15px;
   }
 }
 
+
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.big-checkbox {
+  transform: scale(1.3);
+  transform-origin: left center;
+  cursor: pointer;
+  accent-color: #007bff; /* optional: change checkbox color */
+}

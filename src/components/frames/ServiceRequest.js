@@ -41,6 +41,9 @@ const ServiceRequest = () => {
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [inventory, setInventory] = useState([]);
+  const [useExistingUnit, setUseExistingUnit] = useState(false);
+
 
 
   const validateConductionNumber = (value) => {
@@ -82,19 +85,24 @@ const ServiceRequest = () => {
   const countdownInterval = useRef(null);
 
   useEffect(() => {
-    fetchRequests();
-    getCurrentUser().then(user => {
-      setCurrentUser(user);
-      if (user && user.email) {
-        axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
-          .then(res => {
-            const found = res.data.find(u => u.email === user.email);
-            setFullUser(found);
-          })
-          .catch(() => setFullUser(null));
-      }
-    });
-  }, []);
+  fetchRequests();
+  axios.get("https://itrack-web-backend.onrender.com/api/getStock")
+    .then(res => setInventory(res.data))
+    .catch(err => console.log(err));
+
+  getCurrentUser().then(user => {
+    setCurrentUser(user);
+    if (user && user.email) {
+      axios.get("https://itrack-web-backend.onrender.com/api/getUsers", { withCredentials: true })
+        .then(res => {
+          const found = res.data.find(u => u.email === user.email);
+          setFullUser(found);
+        })
+        .catch(() => setFullUser(null));
+    }
+  });
+}, []);
+
 
   // Setup live countdowns for in-progress requests
   useEffect(() => {
@@ -154,6 +162,15 @@ const ServiceRequest = () => {
     return;
   }
 
+  // Extra validation: prevent duplicate service request for same unit
+  const existingUnit = inventory.find(u => u.unitId === vehicleRegNo);
+  if (!useExistingUnit && existingUnit) {
+    const proceed = window.confirm(
+      `This conduction number already exists in inventory as "${existingUnit.unitName}". Do you still want to proceed manually?`
+    );
+    if (!proceed) return;
+  }
+
   axios.post("https://itrack-web-backend.onrender.com/api/createRequest", newRequest, { withCredentials: true })
     .then(() => {
       fetchRequests();
@@ -164,10 +181,12 @@ const ServiceRequest = () => {
         service: [],
         status: 'Pending'
       });
+      setUseExistingUnit(false);
       setIsCreateModalOpen(false);
     })
     .catch((err) => console.log(err));
 };
+
 
   
   const handleUpdateRequest = (id) => {
@@ -333,6 +352,10 @@ useEffect(() => {
 
 
 
+
+
+
+
   return (
     <div className="app">
       {/* Create Modal */}
@@ -340,111 +363,178 @@ useEffect(() => {
         <div className="modal-overlay">
           <div className="modal">
             <p className='modaltitle'>Create Vehicle Preparation</p>
+<div className='modalline'></div>
 
-            <div className='modalline'> 
-            </div>
+<div className="modal-content">
+  <div className="modal-form">
+    {/* Date Created */}
+    <div className="modal-form-group">
+      <label>Date Created <span style={{ color: 'red' }}>*</span></label>
+      <input
+        type="date"
+        value={newRequest.dateCreated}
+        onChange={(e) =>
+          setNewRequest({ ...newRequest, dateCreated: e.target.value })
+        }
+        required
+      />
+    </div>
 
-            <div className="modal-content">
-              <div className="modal-form">
-              <div className="modal-form-group">
-  <label>Date Created <span style={{color: 'red'}}>*</span></label>
-  <input
-    type="date"
-    value={newRequest.dateCreated}
-    onChange={(e) =>
-      setNewRequest({ ...newRequest, dateCreated: e.target.value })
-    }
-    required
+    {/* 🔘 Choose between existing inventory or manual input */}
+    <div style={{marginTop:'0px' }} className="modal-form-group checkbox-group">
+  <label>Use Existing Inventory Unit?</label>
+  <input className="big-checkbox"
+    type="checkbox"
+    checked={useExistingUnit}
+    onChange={(e) => setUseExistingUnit(e.target.checked)}
   />
 </div>
 
-<div className="modal-form-group">
-  <label>Conduction Number <span style={{color: 'red'}}>*</span></label>
-  <input
-    type="text"
-    value={newRequest.vehicleRegNo}
-    onChange={(e) =>
-      setNewRequest({ ...newRequest, vehicleRegNo: e.target.value })
-    }
-    required
-  />
-</div>
 
-<div className="modal-form-group">
-  <label>Service <span style={{color: 'red'}}>*</span></label>
-  <div className="dropdown">
-    <button
-      type="button"
-      className="dropdown-btn"
-      onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-    >
-      <span>
-        {newRequest.service.length > 0
-          ? newRequest.service.join(', ')
-          : 'Select Services'}
-      </span>
-      <img src={dropdownIcon} alt="Dropdown" style={{ width: 7, height: 7, marginRight: 4 }} />
-    </button>
-    {serviceDropdownOpen && (
-      <div className="dropdown-menu">
-        {['Carwash', 'Tinting', 'Ceramic Coating', 'Accessories', 'Rust Proof'].map((service) => (
-          <label key={service} className="dropdown-item">
-            <input
-              type="checkbox"
-              value={service}
-              checked={newRequest.service.includes(service)}
-              onChange={(e) => {
-                const value = e.target.value;
-                setNewRequest((prev) => ({
-                  ...prev,
-                  service: prev.service.includes(value)
-                    ? prev.service.filter((s) => s !== value)
-                    : [...prev.service, value]
-                }));
-              }}
-              required={newRequest.service.length === 0}
-            />
-            {service}
-          </label>
-        ))}
-      </div>
+
+    {/* 🔘 Conditional form rendering */}
+    {useExistingUnit ? (
+      <>
+        {/* Select from inventory */}
+        <div className="modal-form-group">
+          <label >Select Existing Unit <span style={{ color: 'red'}}>*</span></label>
+          <select style={{ fontSize: '13px' }}
+            value={newRequest.unitName || ''}
+            onChange={(e) => {
+              const selectedUnit = inventory.find(u => u.unitName === e.target.value);
+              setNewRequest({
+                ...newRequest,
+                unitName: selectedUnit?.unitName || '',
+                vehicleRegNo: selectedUnit?.unitId || '',
+              });
+            }}
+            required
+          >
+            <option  value="">Select from Inventory</option>
+            {inventory.map((unit) => (
+              <option key={unit._id} value={unit.unitName}>
+                {unit.unitName} ({unit.unitId})
+              </option>
+            ))}
+          </select>
+        </div>
+      </>
+    ) : (
+      <>
+        {/* Manual input for Conduction Number */}
+        <div className="modal-form-group">
+          <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
+          <input
+            type="text"
+            value={newRequest.vehicleRegNo}
+            onChange={(e) =>
+              setNewRequest({ ...newRequest, vehicleRegNo: e.target.value })
+            }
+            required
+          />
+        </div>
+
+        {/* Manual input for Unit Name */}
+        <div className="modal-form-group">
+          <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
+          <input
+            type="text"
+            value={newRequest.unitName}
+            onChange={(e) =>
+              setNewRequest({ ...newRequest, unitName: e.target.value })
+            }
+            required
+          />
+        </div>
+      </>
     )}
+
+    {/* Services dropdown (unchanged) */}
+    <div className="modal-form-group">
+      <label>Service <span style={{ color: 'red' }}>*</span></label>
+      <div className="dropdown">
+        <button
+          type="button"
+          className="dropdown-btn"
+          onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+          }}
+        >
+          <span>
+            {newRequest.service.length > 0
+              ? newRequest.service.join(', ')
+              : 'Select Services'}
+          </span>
+          <img
+            src={dropdownIcon}
+            alt="Dropdown"
+            style={{ width: 7, height: 7, marginRight: 4 }}
+          />
+        </button>
+
+        {serviceDropdownOpen && (
+          <div className="dropdown-menu">
+            {['Carwash', 'Tinting', 'Ceramic Coating', 'Accessories', 'Rust Proof'].map(
+              (service) => (
+                <label key={service} className="dropdown-item">
+                  <input
+                    type="checkbox"
+                    value={service}
+                    checked={newRequest.service.includes(service)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewRequest((prev) => ({
+                        ...prev,
+                        service: prev.service.includes(value)
+                          ? prev.service.filter((s) => s !== value)
+                          : [...prev.service, value],
+                      }));
+                    }}
+                    required={newRequest.service.length === 0}
+                  />
+                  {service}
+                </label>
+              )
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Status */}
+    <div className="modal-form-group">
+      <label>Status</label>
+      <select
+        value={newRequest.status}
+        onChange={(e) =>
+          setNewRequest({ ...newRequest, status: e.target.value })
+        }
+      >
+        <option value="Pending">Pending</option>
+      </select>
+    </div>
+  </div>
+
+  {/* Buttons */}
+  <div className="modal-buttons">
+    <button className="create-btn1" onClick={handleCreateRequest}>
+      Submit
+    </button>
+    <button
+      className="cancel-btn1"
+      onClick={() => setIsCreateModalOpen(false)}
+    >
+      Cancel
+    </button>
   </div>
 </div>
-
-<div className="modal-form-group">
-  <label>Unit Name <span style={{color: 'red'}}>*</span></label>
-  <select
-    value={newRequest.unitName || ''}
-    onChange={e => setNewRequest({ ...newRequest, unitName: e.target.value })}
-    required
-  >
-    <option value="">Select Unit Name</option>
-    <option value="Isuzu MU-X">Isuzu MU-X</option>
-    <option value="Isuzu D-MAX">Isuzu D-MAX</option>
-    <option value="Isuzu Traviz">Isuzu Traviz</option>
-  </select>
 </div>
-
-                <div className="modal-form-group">
-                  <label>Status</label>
-                  <select
-                    value={newRequest.status}
-                    onChange={(e) => setNewRequest({ ...newRequest, status: e.target.value })}
-                  >
-                    <option value="Pending">Pending</option>
-                    
-                  </select>
-                </div>
-              </div>
-              <div className="modal-buttons">
-                <button className="create-btn1" onClick={handleCreateRequest}>Submit</button>
-                <button className="cancel-btn1" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
-              </div>
-            </div>
-          </div>
         </div>
+          
       )}
 
       {/* Edit Modal */}
