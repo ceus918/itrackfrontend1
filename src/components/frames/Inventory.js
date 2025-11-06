@@ -339,8 +339,94 @@ useEffect(() => {
 }, []);
 
 
+const unitOptions = {
+  "Isuzu D-Max": [
+    "Cab and Chassis",
+    "CC Utility Van Dual AC",
+    "4x2 LT MT",
+    "4x4 LT MT",
+    "4x2 LS-A MT",
+    "4x2 LS-A MT Plus",
+    "4x2 LS-A AT",
+    "4x2 LS-A AT Plus",
+    "4x4 LS-A MT",
+    "4x4 LS-A MT Plus",
+    "4x2 LS-E AT",
+    "4x4 LS-E AT",
+    "4x4 Single Cab MT"
+  ],
+  "Isuzu MU-X": [
+    "1.9L MU-X 4x2 LS AT",
+    "3.0L MU-X 4x2 LS-A AT",
+    "3.0L MU-X 4x2 LS-E AT",
+    "3.0L MU-X 4x4 LS-E AT"
+  ],
+  "Isuzu Traviz": [
+    "SWB 2.5L 4W 9FT Cab & Chassis",
+    "SWB 2.5L 4W 9FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Cab & Chassis",
+    "LWB 2.5L 4W 10FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Aluminum Van",
+    "LWB 2.5L 4W 10FT Aluminum Van w/ Single AC",
+    "LWB 2.5L 4W 10FT Dropside Body",
+    "LWB 2.5L 4W 10FT Dropside Body w/ Single AC"
+  ],
+  "Isuzu QLR Series": [
+    "QLR77 E Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Non-Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt Utility Van Dual AC"
+  ],
+  "Isuzu NLR Series": [
+    "NLR77 H Tilt 3.0L 4W 14ft 60A",
+    "NLR77 H Jeepney Chassis (135A)",
+    "NLR85 Tilt 3.0L 4W 10ft 90A",
+    "NLR85E Smoother"
+  ],
+  "Isuzu NMR Series": [
+    "NMR85H Smoother",
+    "NMR85 H Tilt 3.0L 6W 14ft 80A Non-AC"
+  ],
+  "Isuzu NPR Series": [
+    "NPR85 Tilt 3.0L 6W 16ft 90A",
+    "NPR85 Cabless for Armored"
+  ],
+  "Isuzu NPS Series": [
+    "NPS75 H 3.0L 6W 16ft 90A"
+  ],
+  "Isuzu NQR Series": [
+    "NQR75L Smoother",
+    "NQR75 Tilt 5.2L 6W 18ft 90A"
+  ],
+  "Isuzu FRR Series": [
+    "FRR90M 6W 20ft 5.2L",
+    "FRR90M Smoother"
+  ],
+  "Isuzu FTR Series": [
+    "FTR90M 6W 19ft 5.2L"
+  ],
+  "Isuzu FVR Series": [
+    "FVR34Q Smoother",
+    "FVR 34Q 6W 24ft 7.8L w/ ABS"
+  ],
+  "Isuzu FTS Series": [
+    "FTS34 J",
+    "FTS34L"
+  ],
+  "Isuzu FVM Series": [
+    "FVM34T 10W 26ft 7.8L w/ ABS",
+    "FVM34W 10W 32ft 7.8L w/ ABS"
+  ],
+  "Isuzu FXM Series": ["FXM60W"],
+  "Isuzu GXZ Series": ["GXZ60N"],
+  "Isuzu EXR Series": ["EXR77H 380PS 6W Tractor Head"]
+};
 
-
+const UnitDropdown = () => {
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [selectedVariation, setSelectedVariation] = useState("");
+}
 
 
 
@@ -445,8 +531,6 @@ useEffect(() => {
 </header>
 
 
-       
-
 
         {isProfileModalOpen && (
   <div className="profile-modal-overlay">
@@ -536,8 +620,6 @@ useEffect(() => {
   </div>
 )}
 
-
-
         <div className="user-management-header" style={{ gap: 0 }}>
           <button 
             onClick={handleDownloadInventoryPDF} 
@@ -610,10 +692,8 @@ useEffect(() => {
     <option value="Isuzu Traviz">Isuzu Traviz</option>
   </select>
 </div>
-
             </div>
 
-            
           </div>
           
           <div className="search-container">
@@ -654,31 +734,64 @@ useEffect(() => {
         {isCreateModalOpen && (
   <div className="modal-overlay">
     <div className="modal">
-        <p className='modaltitle'>Add Stock</p>
-
-            <div className='modalline'> 
-            </div>
+      <p className="modaltitle">Add Stock</p>
+      <div className="modalline"></div>
 
       <div className="modal-content">
         <div className="modal-form">
+          {/* ------------------ UNIT NAME ------------------ */}
           <div className="modal-form-group">
-            <label>Unit Name <span style={{color: 'red'}}>*</span></label>
-            <select value={newStock.unitName} onChange={(e) => setNewStock({ ...newStock, unitName: e.target.value })} required>
+            <label>
+              Unit Name <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={newStock.unitName}
+              onChange={(e) => {
+                const unitName = e.target.value;
+                setNewStock({
+                  ...newStock,
+                  unitName,
+                  variation: "" // reset variation when unit changes
+                });
+              }}
+              required
+            >
               <option value="">Select Unit Name</option>
-              <option value="Isuzu MU-X">Isuzu MU-X</option>
-              <option value="Isuzu D-MAX">Isuzu D-MAX</option>
-              <option value="Isuzu Traviz">Isuzu Traviz</option>
+              {Object.keys(unitOptions).map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* ------------------ CONDUCTION NUMBER ------------------ */}
           <div className="modal-form-group">
-            <label>Conduction Number <span style={{color: 'red'}}>*</span></label>
-            <input type="text" value={newStock.unitId} onChange={(e) => setNewStock({ ...newStock, unitId: e.target.value })} required />
+            <label>
+              Conduction Number <span style={{ color: "red" }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={newStock.unitId}
+              onChange={(e) =>
+                setNewStock({ ...newStock, unitId: e.target.value })
+              }
+              required
+            />
           </div>
 
+          {/* ------------------ BODY COLOR ------------------ */}
           <div className="modal-form-group">
-            <label>Body Color <span style={{color: 'red'}}>*</span></label>
-            <select value={newStock.bodyColor} onChange={(e) => setNewStock({ ...newStock, bodyColor: e.target.value })} required>
+            <label>
+              Body Color <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={newStock.bodyColor}
+              onChange={(e) =>
+                setNewStock({ ...newStock, bodyColor: e.target.value })
+              }
+              required
+            >
               <option value="">Select Body Color</option>
               <option value="Black">Black</option>
               <option value="White">White</option>
@@ -688,54 +801,109 @@ useEffect(() => {
             </select>
           </div>
 
+          {/* ------------------ VARIATION ------------------ */}
           <div className="modal-form-group">
-            <label>Variation <span style={{color: 'red'}}>*</span></label>
-            <select value={newStock.variation} onChange={(e) => setNewStock({ ...newStock, variation: e.target.value })} required>
+            <label>
+              Variation <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={newStock.variation}
+              onChange={(e) =>
+                setNewStock({ ...newStock, variation: e.target.value })
+              }
+              required
+              disabled={!newStock.unitName}
+            >
               <option value="">Select Variation</option>
-               <option value="4x2 LSA">4x2 LSA</option>
-               <option value="4x4">4x4</option>
-               <option value="LS-E">LS-E</option>
-               <option value="LS">LS</option>
-              </select>
-
+              {newStock.unitName &&
+                unitOptions[newStock.unitName]?.map((variation, index) => (
+                  <option key={index} value={variation}>
+                    {variation}
+                  </option>
+                ))}
+            </select>
           </div>
-
         </div>
+
+        {/* ------------------ BUTTONS ------------------ */}
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={handleCreateStock}>Add</button>
-          <button className="cancel-btn1" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+          <button className="create-btn1" onClick={handleCreateStock}>
+            Add
+          </button>
+          <button
+            className="cancel-btn1"
+            onClick={() => setIsCreateModalOpen(false)}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
   </div>
 )}
 
-
+{/* ------------------ EDIT STOCK MODAL ------------------ */}
 {editStock && (
   <div className="modal-overlay">
     <div className="modal">
-      <p className='modaltitle'>Edit Stock</p>
-      <div className='modalline'> 
+      <p className="modaltitle">Edit Stock</p>
+      <div className="modalline"></div>
+
       <div className="modal-content">
         <div className="modal-form">
+          {/* ------------------ UNIT NAME ------------------ */}
           <div className="modal-form-group">
-            <label>Unit Name <span style={{color: 'red'}}>*</span></label>
-            <select value={editStock.unitName} onChange={(e) => setEditStock({ ...editStock, unitName: e.target.value })} required>
+            <label>
+              Unit Name <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={editStock.unitName}
+              onChange={(e) => {
+                const unitName = e.target.value;
+                setEditStock({
+                  ...editStock,
+                  unitName,
+                  variation: "" // reset variation when unit changes
+                });
+              }}
+              required
+            >
               <option value="">Select Unit Name</option>
-              <option value="Isuzu MU-X">Isuzu MU-X</option>
-              <option value="Isuzu D-MAX">Isuzu D-MAX</option>
-              <option value="Isuzu Traviz">Isuzu Traviz</option>
+              {Object.keys(unitOptions).map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* ------------------ CONDUCTION NUMBER ------------------ */}
           <div className="modal-form-group">
-            <label>Conduction Number <span style={{color: 'red'}}>*</span></label>
-            <input type="text" value={editStock.unitId} onChange={(e) => setEditStock({ ...editStock, unitId: e.target.value })} required />
+            <label>
+              Conduction Number <span style={{ color: "red" }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={editStock.unitId}
+              onChange={(e) =>
+                setEditStock({ ...editStock, unitId: e.target.value })
+              }
+              required
+            />
           </div>
 
+          {/* ------------------ BODY COLOR ------------------ */}
           <div className="modal-form-group">
-            <label>Body Color <span style={{color: 'red'}}>*</span></label>
-            <select value={editStock.bodyColor} onChange={(e) => setEditStock({ ...editStock, bodyColor: e.target.value })} required>
+            <label>
+              Body Color <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={editStock.bodyColor}
+              onChange={(e) =>
+                setEditStock({ ...editStock, bodyColor: e.target.value })
+              }
+              required
+            >
               <option value="">Select Body Color</option>
               <option value="Black">Black</option>
               <option value="White">White</option>
@@ -745,25 +913,42 @@ useEffect(() => {
             </select>
           </div>
 
+          {/* ------------------ VARIATION ------------------ */}
           <div className="modal-form-group">
-            <label>Variation <span style={{color: 'red'}}>*</span></label>
-            <select value={editStock.variation} onChange={(e) => setEditStock({ ...editStock, variation: e.target.value })} required>
+            <label>
+              Variation <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={editStock.variation}
+              onChange={(e) =>
+                setEditStock({ ...editStock, variation: e.target.value })
+              }
+              required
+              disabled={!editStock.unitName}
+            >
               <option value="">Select Variation</option>
-               <option value="4x2 LSA">4x2 LSA</option>
-               <option value="4x4">4x4</option>
-               <option value="LS-E">LS-E</option>
-               <option value="LS">LS</option>
-
+              {editStock.unitName &&
+                unitOptions[editStock.unitName]?.map((variation, index) => (
+                  <option key={index} value={variation}>
+                    {variation}
+                  </option>
+                ))}
             </select>
-
           </div>
+        </div>
 
-        </div>
+        {/* ------------------ BUTTONS ------------------ */}
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={() => handleUpdateStock(editStock._id)}>Save</button>
-          <button className="cancel-btn1" onClick={() => setEditStock(null)}>Cancel</button>
+          <button
+            className="create-btn1"
+            onClick={() => handleUpdateStock(editStock._id)}
+          >
+            Save
+          </button>
+          <button className="cancel-btn1" onClick={() => setEditStock(null)}>
+            Cancel
+          </button>
         </div>
-      </div>
       </div>
     </div>
   </div>
@@ -771,13 +956,8 @@ useEffect(() => {
 
         
         <div className="content">
-        
-
           
-
-
           <div className="table-container">
-
         
         <table >
           <thead>
@@ -886,8 +1066,6 @@ useEffect(() => {
     </div>
   </div>
 )}
-
-
 
 
       </div>
