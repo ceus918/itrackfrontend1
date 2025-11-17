@@ -1,30 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import 'leaflet/dist/leaflet.css';
-import L from "leaflet";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import "../css/ServiceRequest.css";
 
-import truckIconImg from "../icons/truck1.png"; // adjust path
-
-// Custom truck icon
-const truckIcon = new L.Icon({
-  iconUrl: truckIconImg,
-  iconSize: [50, 50],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
-});
-
-// Fix for default Leaflet marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
-});
+import truckIconImg from "../icons/truck1.png";
 
 const defaultCenter = {
-  lat: 15.5995, // Manila
+  lat: 15.5995,
   lng: 120.9842,
 };
 
@@ -34,19 +16,12 @@ const isValidLatLng = (lat, lng) =>
   !isNaN(lat) &&
   !isNaN(lng);
 
-const RecenterMap = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (center && isValidLatLng(center[0], center[1])) {
-      map.setView(center);
-    }
-  }, [center, map]);
-  return null;
-};
-
 const ViewShipment = ({ isOpen, onClose, data }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
-  const markerRef = useRef(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyAT5fZoyDVluzfdq4Rz2uuVJDocqBLDTGo",
+  });
 
   useEffect(() => {
     if (!isOpen || !data?._id) return;
@@ -58,18 +33,14 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
           { withCredentials: true }
         );
 
-        console.log("Fetched allocation:", res.data);
-
-        // ✅ FIX: Use currentLocation instead of location
         const loc = res.data?.currentLocation;
 
-        if (loc?.latitude != null && loc?.longitude != null) {
+        if (loc?.latitude && loc?.longitude) {
           const lat = Number(loc.latitude);
           const lng = Number(loc.longitude);
 
           if (!isNaN(lat) && !isNaN(lng)) {
-            console.log("Current location found:", loc);
-            setCurrentLocation([lat, lng]);
+            setCurrentLocation({ lat, lng });
           }
         }
       } catch (err) {
@@ -82,27 +53,19 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
     return () => clearInterval(interval);
   }, [isOpen, data?._id]);
 
-  // ✅ FIX: use data.currentLocation as fallback
   const mapCenter =
-    currentLocation && isValidLatLng(currentLocation[0], currentLocation[1])
+    currentLocation && isValidLatLng(currentLocation.lat, currentLocation.lng)
       ? currentLocation
-      : data?.currentLocation && isValidLatLng(data.currentLocation.latitude, data.currentLocation.longitude)
-      ? [data.currentLocation.latitude, data.currentLocation.longitude]
-      : [defaultCenter.lat, defaultCenter.lng];
-
-  useEffect(() => {
-    if (isOpen && markerRef.current) {
-      markerRef.current.openPopup();
-    }
-  }, [isOpen, mapCenter]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        window.dispatchEvent(new Event("resize"));
-      }, 300);
-    }
-  }, [isOpen]);
+      : data?.currentLocation &&
+        isValidLatLng(
+          data.currentLocation.latitude,
+          data.currentLocation.longitude
+        )
+      ? {
+          lat: data.currentLocation.latitude,
+          lng: data.currentLocation.longitude,
+        }
+      : defaultCenter;
 
   if (!isOpen) return null;
 
@@ -119,7 +82,7 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
         <div className="modal-content viewshipment-flex">
           {data ? (
             <>
-              {/* Left side: shipment details */}
+              {/* Left: Shipment details */}
               <div className="viewshipment-info">
                 <p><strong>Date: </strong>{new Date(data.date).toLocaleDateString("en-CA")}</p>
                 <p><strong>Unit Name: </strong>{data.unitName}</p>
@@ -127,37 +90,30 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
                 <p><strong>Status: </strong>{data.status}</p>
               </div>
 
-              {/* Right side: map */}
+              {/* Right: Google Map */}
               <div className="viewshipment-map">
-                <MapContainer
-                  center={mapCenter}
-                  zoom={14}
-                  style={{
-                    height: "450px",
-                    width: "900px",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.3)",
-                  }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {isValidLatLng(mapCenter[0], mapCenter[1]) && (
-                    <Marker position={mapCenter} icon={truckIcon} ref={markerRef}>
-                      <Popup>
-                        {data.unitName} <br /> {data.status}
-                        <br />
-                        {currentLocation
-                          ? `Live @ ${currentLocation[0]}, ${currentLocation[1]}`
-                          : data?.currentLocation
-                          ? `Initial @ ${data.currentLocation.latitude}, ${data.currentLocation.longitude}`
-                          : "Waiting for location..."}
-                      </Popup>
-                    </Marker>
-                  )}
-                  <RecenterMap center={mapCenter} />
-                </MapContainer>
+                {isLoaded ? (
+  <GoogleMap
+    center={mapCenter}
+    zoom={14}
+    mapContainerStyle={{
+      height: "450px",
+      width: "900px",
+      borderRadius: "10px",
+    }}
+  >
+    <Marker
+      position={mapCenter}
+      icon={{
+        url: truckIconImg,
+        scaledSize: new window.google.maps.Size(65, 65),
+      }}
+    />
+  </GoogleMap>
+) : (
+  <p>Loading Map...</p>
+)}
+
               </div>
             </>
           ) : (

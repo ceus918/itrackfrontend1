@@ -29,10 +29,22 @@ const [newStock, setNewStock] = useState({
   bodyColor2: '',
   variation2: '',
 });
+const [currentUser, setCurrentUser] = useState(null);
+
 const [userRole, setUserRole] = useState(null);
-
-
-
+ const [user, setUser] = useState([]);
+    const [editUser, setEditUser] = useState(null);
+     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+      const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      const [newUser, setNewUser] = useState({
+      password: "",
+      // other fields...
+    });
+  
 
 const fileInputRef = React.useRef(null);
 
@@ -126,35 +138,21 @@ const handleProfileClick = () => {
 
 const handleProfileChange = (e) => {
   const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const newImage = reader.result;
-      setProfileData(prev => ({ ...prev, picture: newImage }));
-      setProfileImage(newImage);
+  if (!file) return;
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, newImage);
-      }
-
-      // ✅ Audit log
-      await axios.post(
-        "https://itrack-web-backend.onrender.com/api/audit-trail",
-        {
-          action: "Update",
-          resource: "Profile Image",
-          performedBy: fullUser.email || fullUser.name,
-          details: "Profile picture changed",
-          timestamp: new Date().toISOString(),
-        },
-        { withCredentials: true }
-      );
-    };
-    reader.readAsDataURL(file);
-  }
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const newImage = reader.result;
+    // ONLY update modal state, no immediate upload or audit log
+    setProfileData(prev => ({ ...prev, picture: newImage }));
+    setProfileImage(newImage); // preview in modal
+  };
+  reader.readAsDataURL(file);
 };
 
-const handleUpdateProfile = () => {
+
+
+  const handleUpdateProfile = async () => {
   if (!profileData.name || !profileData.phoneno) {
     alert("Name and phone number are required.");
     return;
@@ -166,22 +164,37 @@ const handleUpdateProfile = () => {
     picture: profileData.picture,
   };
 
-  axios
-    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, updatedData)
-    .then(() => {
-      alert("Profile updated successfully!");
-      setFullUser({ ...fullUser, ...updatedData });
+  try {
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`,
+      updatedData
+    );
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
-      }
+    // ✅ update frontend state
+    setFullUser({ ...fullUser, ...updatedData });
+    if (fullUser?.email) {
+      localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
+    }
 
-      setIsProfileModalOpen(false);
-    })
-    .catch((error) => {
-      console.error("Update failed:", error);
-      alert("Failed to update profile.");
-    });
+    // ✅ log audit only after save
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/audit-trail",
+      {
+        action: "Update",
+        resource: "User",
+        performedBy: fullUser.name,
+        details: { summary: "Profile picture changed" },
+        timestamp: new Date().toISOString(),
+      },
+      { withCredentials: true }
+    );
+
+    alert("Profile updated successfully!");
+    setIsProfileModalOpen(false);
+  } catch (error) {
+    console.error("Update failed:", error);
+    alert("Failed to update profile.");
+  }
 };
 
 
@@ -334,6 +347,163 @@ const validateConductionNumber = (value) => {
 
 
 
+const unitOptions = {
+  "Isuzu D-Max": [
+    "Cab and Chassis",
+    "CC Utility Van Dual AC",
+    "4x2 LT MT",
+    "4x4 LT MT",
+    "4x2 LS-A MT",
+    "4x2 LS-A MT Plus",
+    "4x2 LS-A AT",
+    "4x2 LS-A AT Plus",
+    "4x4 LS-A MT",
+    "4x4 LS-A MT Plus",
+    "4x2 LS-E AT",
+    "4x4 LS-E AT",
+    "4x4 Single Cab MT"
+  ],
+  "Isuzu MU-X": [
+    "1.9L MU-X 4x2 LS AT",
+    "3.0L MU-X 4x2 LS-A AT",
+    "3.0L MU-X 4x2 LS-E AT",
+    "3.0L MU-X 4x4 LS-E AT"
+  ],
+  "Isuzu Traviz": [
+    "SWB 2.5L 4W 9FT Cab & Chassis",
+    "SWB 2.5L 4W 9FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Cab & Chassis",
+    "LWB 2.5L 4W 10FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Aluminum Van",
+    "LWB 2.5L 4W 10FT Aluminum Van w/ Single AC",
+    "LWB 2.5L 4W 10FT Dropside Body",
+    "LWB 2.5L 4W 10FT Dropside Body w/ Single AC"
+  ],
+  "Isuzu QLR Series": [
+    "QLR77 E Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Non-Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt Utility Van Dual AC"
+  ],
+  "Isuzu NLR Series": [
+    "NLR77 H Tilt 3.0L 4W 14ft 60A",
+    "NLR77 H Jeepney Chassis (135A)",
+    "NLR85 Tilt 3.0L 4W 10ft 90A",
+    "NLR85E Smoother"
+  ],
+  "Isuzu NMR Series": [
+    "NMR85H Smoother",
+    "NMR85 H Tilt 3.0L 6W 14ft 80A Non-AC"
+  ],
+  "Isuzu NPR Series": [
+    "NPR85 Tilt 3.0L 6W 16ft 90A",
+    "NPR85 Cabless for Armored"
+  ],
+  "Isuzu NPS Series": [
+    "NPS75 H 3.0L 6W 16ft 90A"
+  ],
+  "Isuzu NQR Series": [
+    "NQR75L Smoother",
+    "NQR75 Tilt 5.2L 6W 18ft 90A"
+  ],
+  "Isuzu FRR Series": [
+    "FRR90M 6W 20ft 5.2L",
+    "FRR90M Smoother"
+  ],
+  "Isuzu FTR Series": [
+    "FTR90M 6W 19ft 5.2L"
+  ],
+  "Isuzu FVR Series": [
+    "FVR34Q Smoother",
+    "FVR 34Q 6W 24ft 7.8L w/ ABS"
+  ],
+  "Isuzu FTS Series": [
+    "FTS34 J",
+    "FTS34L"
+  ],
+  "Isuzu FVM Series": [
+    "FVM34T 10W 26ft 7.8L w/ ABS",
+    "FVM34W 10W 32ft 7.8L w/ ABS"
+  ],
+  "Isuzu FXM Series": ["FXM60W"],
+  "Isuzu GXZ Series": ["GXZ60N"],
+  "Isuzu EXR Series": ["EXR77H 380PS 6W Tractor Head"]
+};
+
+const UnitDropdown = () => {
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [selectedVariation, setSelectedVariation] = useState("");
+}
+
+const fetchUsers = () => {
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      setCurrentUser(user);
+      if (user && user.email) {
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+          .then(res => {
+            const found = res.data.find(u => u.email === user.email);
+            setFullUser(found);
+          })
+          .catch(() => setFullUser(null));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
+  const handleChangePassword = () => {
+  if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    alert("All fields are required.");
+    return;
+  }
+
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    alert("New password and confirm password do not match.");
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    alert("New password must be at least 8 characters long.");
+    return;
+  }
+
+  // ✅ Check if entered current password matches the user's existing one
+  if (passwordData.currentPassword !== fullUser.password) {
+    alert("Incorrect current password. Please try again.");
+    return;
+  }
+
+  // ✅ Update password
+  axios
+    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, {
+      ...fullUser,
+      password: passwordData.newPassword, // only change password
+    })
+    .then(() => {
+      alert("Password updated successfully!");
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setIsPasswordModalOpen(false);
+      fetchUsers(); // refresh user list if needed
+    })
+    .catch((error) => {
+      console.error("Failed to update password:", error);
+      alert("Error updating password. Please try again.");
+    });
+};
 
 
 
@@ -349,96 +519,111 @@ const validateConductionNumber = (value) => {
   </div>
 
   {/* Profile section on the right */}
-  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-    {fullUser && fullUser.name && (
+  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0px' }}>
+            {fullUser && fullUser.name && (
+  <div
+    className="loggedinuser"
+    onClick={() => {
+      setProfileData({
+        name: fullUser.name,
+        phoneno: fullUser.phoneno,
+        picture: fullUser.picture || ''
+      });
+      setIsProfileModalOpen(true);
+    }}
+    style={{
+   
+      fontWeight: 500,
+      fontSize: 15,
+      cursor: 'pointer',
+  
+    }}
+  >
+    Welcome, {fullUser.name}
+  </div>
+)}
+
+
+            <div
+  className="profile-wrapper"
+  style={{ position: "relative", cursor: "pointer" }}
+>
+  {/* Profile image */}
+ <img
+  src={
+    profileImage ||
+    profileData.picture ||
+    fullUser?.picture ||
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+  }
+  alt=""
+  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+  style={{
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    border: "2px solid #ffffff",
+    objectFit: "cover",
+  }}
+/>
+
+
+
+
+  {/* Hidden file input */}
+  <input
+  type="file"
+  id="profilePicInput"
+  style={{ display: "none" }}
+  accept="image/*"
+  onChange={handleProfileChange}
+/>
+
+
+  {/* Dropdown menu */}
+  {isDropdownOpen && (
+    <div
+      className="profile-dropdown"
+      style={{
+        position: "absolute",
+        top: "50px",
+        right: 0,
+        backgroundColor: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        zIndex: 1000,
+        width: "150px",
+      }}
+    >
       <div
-        className="loggedinuser"
         onClick={() => {
+          setIsDropdownOpen(false);
           setProfileData({
             name: fullUser.name,
             phoneno: fullUser.phoneno,
-            picture: fullUser.picture || ''
+            picture: fullUser.picture || "",
           });
           setIsProfileModalOpen(true);
         }}
         style={{
-          fontWeight: 500,
-          fontSize: 15,
-          cursor: 'pointer',
+          padding: "10px 12px",
+          cursor: "pointer",
+          color: "#393939ff",
+          fontSize: "13px",
+          borderBottom: "1px solid #eee",
         }}
       >
-        Welcome, {fullUser.name}
+        Edit Profile
       </div>
-    )}
-
-    <div
-      className="profile-wrapper"
-      style={{ cursor: 'pointer' }}
-    >
-      <img
-        src={fullUser?.picture || profileImage || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
-        alt=""
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          border: "2px solid #ffffff",
-          objectFit: "cover",
-        }}
-      />
-
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleProfileChange}
-        style={{ display: "none" }}
-      />
-
-      {isDropdownOpen && (
-        <div
-          className="profile-dropdown"
-          style={{
-            position: "absolute",
-            top: "50px",
-            right: 0,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-            zIndex: 1000,
-            width: "150px",
-          }}
-        >
-          <div
-            onClick={() => {
-              setIsDropdownOpen(false);
-              setProfileData({
-                name: fullUser.name,
-                phoneno: fullUser.phoneno,
-                picture: fullUser.picture || "",
-              });
-              setIsProfileModalOpen(true);
-            }}
-            style={{
-              padding: "10px 12px",
-              cursor: "pointer",
-              color: "#393939ff",
-              fontSize: "13px",
-              borderBottom: "1px solid #eee",
-            }}
-          >
-            Edit Profile
-          </div>
-        </div>
-      )}
     </div>
-  </div>
-</header>
+  )}
+</div>
+          </div>
+        </header>
 
-
-{isProfileModalOpen && (
+        
+         {isProfileModalOpen && (
   <div className="profile-modal-overlay">
     <div className="profile-modal-container">
       <h2 className="profile-modal-title">Edit Profile</h2>
@@ -447,17 +632,17 @@ const validateConductionNumber = (value) => {
         {/* Profile Image Section */}
         <div className="profile-modal-image-section">
           <img
-            src={
-              fullUser?.picture ||
-              profileImage ||
-              "https://via.placeholder.com/120"
-            }
-            alt="Profile"
-            className="profile-modal-image"
-            onClick={() =>
-              document.getElementById("profilePicInput").click()
-            }
-          />
+  src={
+    profileData.picture ||
+    profileImage ||
+    fullUser?.picture ||
+    "https://via.placeholder.com/120"
+  }
+  alt="Profile"
+  className="profile-modal-image"
+  onClick={() => document.getElementById("profilePicInput").click()}
+/>
+
           <input
             type="file"
             id="profilePicInput"
@@ -516,6 +701,13 @@ const validateConductionNumber = (value) => {
           Save Changes
         </button>
         <button
+          className="profile-modal-btn profile-modal-btn-change-password"
+          
+          onClick={() => setIsPasswordModalOpen(true)}  // Updated: Open the password modal
+        >
+          Change Password
+        </button>
+        <button
           className="profile-modal-btn profile-modal-btn-cancel"
           onClick={() => setIsProfileModalOpen(false)}
         >
@@ -525,6 +717,75 @@ const validateConductionNumber = (value) => {
     </div>
   </div>
 )}
+
+{/* Password Change Modal */}
+{isPasswordModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">Change Password</h2>
+
+      <div className="profile-modal-content">
+        {/* Form Section */}
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+  <label className="profile-modal-label">Current Password</label>
+  <input
+    type="password"
+    className="profile-modal-input"
+    value={passwordData.currentPassword}
+    onChange={(e) =>
+      setPasswordData({ ...passwordData, currentPassword: e.target.value })
+    }
+  />
+</div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, newPassword: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Confirm New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+     <div className="profile-modal-actions">
+  <button
+    className="profile-modal-btn profile-modal-btn-change-password"
+    onClick={handleChangePassword} // ✅ Submit the password change
+  >
+    Change Password
+  </button>
+  <button
+    className="profile-modal-btn profile-modal-btn-cancel"
+    onClick={() => setIsPasswordModalOpen(false)}
+  >
+    Cancel
+  </button>
+</div>
+
+      
+    </div>
+  </div>
+)}
+
 
 
         <div className="testdrive-content">
@@ -597,7 +858,9 @@ const validateConductionNumber = (value) => {
 )}
 
 
-{/* ✅ Add Modal */}
+
+
+ {/* ✅ Add Modal */}
 {isAddModalOpen && (
   <div className="modal-overlay">
     <div className="modal">
@@ -606,54 +869,103 @@ const validateConductionNumber = (value) => {
 
       <div className="modal-content">
         <div className="modal-form">
+          {/* ------------------ UNIT NAME ------------------ */}
           <div className="modal-form-group">
-            <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="unitName2"
+            <label>
+              Unit Name <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={newStock.unitName2}
-              onChange={handleAddStockChange}
+              onChange={(e) => {
+                const unitName = e.target.value;
+                setNewStock({
+                  ...newStock,
+                  unitName2: unitName,
+                  variation2: "" // reset variation when unit changes
+                });
+              }}
               required
-            />
+            >
+              <option value="">Select Unit Name</option>
+              {Object.keys(unitOptions).map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* ------------------ CONDUCTION NUMBER ------------------ */}
           <div className="modal-form-group">
-            <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
+            <label>
+              Conduction Number <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
-              name="unitId2"
               value={newStock.unitId2}
-              onChange={handleAddStockChange}
+              onChange={(e) =>
+                setNewStock({ ...newStock, unitId2: e.target.value })
+              }
               required
             />
           </div>
 
+          {/* ------------------ BODY COLOR ------------------ */}
           <div className="modal-form-group">
-            <label>Body Color <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="bodyColor2"
+            <label>
+              Body Color <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={newStock.bodyColor2}
-              onChange={handleAddStockChange}
+              onChange={(e) =>
+                setNewStock({ ...newStock, bodyColor2: e.target.value })
+              }
               required
-            />
+            >
+              <option value="">Select Body Color</option>
+              <option value="Black">Black</option>
+              <option value="White">White</option>
+              <option value="Gray">Gray</option>
+              <option value="Blue">Blue</option>
+              <option value="Orange">Orange</option>
+            </select>
           </div>
 
+          {/* ------------------ VARIATION ------------------ */}
           <div className="modal-form-group">
-            <label>Variation <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="variation2"
+            <label>
+              Variation <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={newStock.variation2}
-              onChange={handleAddStockChange}
+              onChange={(e) =>
+                setNewStock({ ...newStock, variation2: e.target.value })
+              }
               required
-            />
+              disabled={!newStock.unitName2}
+            >
+              <option value="">Select Variation</option>
+              {newStock.unitName2 &&
+                unitOptions[newStock.unitName2]?.map((variation, index) => (
+                  <option key={index} value={variation}>
+                    {variation}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
 
+        {/* ------------------ BUTTONS ------------------ */}
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={handleAddStockSubmit}>Add</button>
-          <button className="cancel-btn1" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+          <button className="create-btn1" onClick={handleAddStockSubmit}>
+            Add
+          </button>
+          <button
+            className="cancel-btn1"
+            onClick={() => setIsAddModalOpen(false)}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -669,60 +981,108 @@ const validateConductionNumber = (value) => {
 
       <div className="modal-content">
         <div className="modal-form">
+          {/* ------------------ UNIT NAME ------------------ */}
           <div className="modal-form-group">
-            <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="unitName2"
+            <label>
+              Unit Name <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={editStock.unitName2}
-              onChange={handleEditStockChange}
+              onChange={(e) => {
+                const unitName = e.target.value;
+                setEditStock({
+                  ...editStock,
+                  unitName2: unitName,
+                  variation2: "" // reset variation when unit changes
+                });
+              }}
               required
-            />
+            >
+              <option value="">Select Unit Name</option>
+              {Object.keys(unitOptions).map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* ------------------ CONDUCTION NUMBER ------------------ */}
           <div className="modal-form-group">
-            <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
+            <label>
+              Conduction Number <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
-              name="unitId2"
               value={editStock.unitId2}
-              onChange={handleEditStockChange}
+              onChange={(e) =>
+                setEditStock({ ...editStock, unitId2: e.target.value })
+              }
               required
             />
           </div>
 
+          {/* ------------------ BODY COLOR ------------------ */}
           <div className="modal-form-group">
-            <label>Body Color <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="bodyColor2"
+            <label>
+              Body Color <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={editStock.bodyColor2}
-              onChange={handleEditStockChange}
+              onChange={(e) =>
+                setEditStock({ ...editStock, bodyColor2: e.target.value })
+              }
               required
-            />
+            >
+              <option value="">Select Body Color</option>
+              <option value="Black">Black</option>
+              <option value="White">White</option>
+              <option value="Gray">Gray</option>
+              <option value="Blue">Blue</option>
+              <option value="Orange">Orange</option>
+            </select>
           </div>
 
+          {/* ------------------ VARIATION ------------------ */}
           <div className="modal-form-group">
-            <label>Variation <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              name="variation2"
+            <label>
+              Variation <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
               value={editStock.variation2}
-              onChange={handleEditStockChange}
+              onChange={(e) =>
+                setEditStock({ ...editStock, variation2: e.target.value })
+              }
               required
-            />
+              disabled={!editStock.unitName2}
+            >
+              <option value="">Select Variation</option>
+              {editStock.unitName2 &&
+                unitOptions[editStock.unitName2]?.map((variation, index) => (
+                  <option key={index} value={variation}>
+                    {variation}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
 
+        {/* ------------------ BUTTONS ------------------ */}
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={handleEditStockSubmit}>Save</button>
-          <button className="cancel-btn1" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+          <button className="create-btn1" onClick={handleEditStockSubmit}>
+            Save
+          </button>
+          <button
+            className="cancel-btn1"
+            onClick={() => setIsEditModalOpen(false)}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
   </div>
 )}
-
 
 
 

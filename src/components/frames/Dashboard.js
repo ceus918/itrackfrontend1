@@ -6,26 +6,41 @@ import logo from '../icons/I-track logo.png';
 import Sidebar from './Sidebar'; 
 import { getCurrentUser } from '../getCurrentUser';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import imageCompression from "browser-image-compression";
 
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [stockCount, setStockCount] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const [fullUser, setFullUser] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
 
   const fileInputRef = useRef(null);
   const [stockData, setStockData] = useState([]);
   const [allocation, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [fullUser, setFullUser] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 const [profileData, setProfileData] = useState({
   name: '',
   phoneno: '',
   picture: ''
 });
+
+const [user, setUser] = useState([]);
+const [editUser, setEditUser] = useState(null);
  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+ const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [newUser, setNewUser] = useState({
+  password: "",
+  // other fields...
+});
 
 
   
@@ -214,45 +229,27 @@ useEffect(() => {
 
 
 
-
   const handleProfileClick = () => {
     fileInputRef.current.click();
   };
 
   const handleProfileChange = (e) => {
   const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const newImage = reader.result;
-      setProfileData((prev) => ({ ...prev, picture: newImage }));
-      setProfileImage(newImage);
+  if (!file) return;
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, newImage);
-      }
-
-      // ✅ Create a simple audit log
-      await axios.post(
-        "https://itrack-web-backend.onrender.com/api/audit-trail",
-        {
-          action: "Update",
-          resource: "Profile Image",
-          performedBy: fullUser.email || fullUser.name,
-          details: "Profile picture changed",
-          timestamp: new Date().toISOString(),
-        },
-        { withCredentials: true }
-      );
-    };
-    reader.readAsDataURL(file);
-  }
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const newImage = reader.result;
+    // ONLY update modal state, no immediate upload or audit log
+    setProfileData(prev => ({ ...prev, picture: newImage }));
+    setProfileImage(newImage); // preview in modal
+  };
+  reader.readAsDataURL(file);
 };
 
 
 
-
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = async () => {
   if (!profileData.name || !profileData.phoneno) {
     alert("Name and phone number are required.");
     return;
@@ -261,25 +258,42 @@ useEffect(() => {
   const updatedData = {
     name: profileData.name,
     phoneno: profileData.phoneno,
-    picture: profileData.picture, // ✅ include the image
+    picture: profileData.picture,
   };
 
-  axios
-    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, updatedData)
-    .then(() => {
-      alert("Profile updated successfully!");
-      setFullUser({ ...fullUser, ...updatedData });
-      if (fullUser && fullUser.email) {
-  localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
-}
+  try {
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`,
+      updatedData
+    );
 
-      setIsProfileModalOpen(false);
-    })
-    .catch((error) => {
-      console.error("Update failed:", error);
-      alert("Failed to update profile.");
-    });
+    // ✅ update frontend state
+    setFullUser({ ...fullUser, ...updatedData });
+    if (fullUser?.email) {
+      localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
+    }
+
+    // ✅ log audit only after save
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/audit-trail",
+      {
+        action: "Update",
+        resource: "User",
+        performedBy: fullUser.name,
+        details: { summary: "Profile picture changed" },
+        timestamp: new Date().toISOString(),
+      },
+      { withCredentials: true }
+    );
+
+    alert("Profile updated successfully!");
+    setIsProfileModalOpen(false);
+  } catch (error) {
+    console.error("Update failed:", error);
+    alert("Failed to update profile.");
+  }
 };
+
 
 
 useEffect(() => {
@@ -302,6 +316,79 @@ useEffect(() => {
   }
 }, [fullUser]);
 
+
+
+
+
+
+const fetchUsers = () => {
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      setCurrentUser(user);
+      if (user && user.email) {
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+          .then(res => {
+            const found = res.data.find(u => u.email === user.email);
+            setFullUser(found);
+          })
+          .catch(() => setFullUser(null));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
+const handleChangePassword = () => {
+  if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    alert("All fields are required.");
+    return;
+  }
+
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    alert("New password and confirm password do not match.");
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    alert("New password must be at least 8 characters long.");
+    return;
+  }
+
+  // ✅ Check if entered current password matches the user's existing one
+  if (passwordData.currentPassword !== fullUser.password) {
+    alert("Incorrect current password. Please try again.");
+    return;
+  }
+
+  // ✅ Update password
+  axios
+    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, {
+      ...fullUser,
+      password: passwordData.newPassword, // only change password
+    })
+    .then(() => {
+      alert("Password updated successfully!");
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setIsPasswordModalOpen(false);
+      fetchUsers(); // refresh user list if needed
+    })
+    .catch((error) => {
+      console.error("Failed to update password:", error);
+      alert("Error updating password. Please try again.");
+    });
+};
 
 
 
@@ -343,10 +430,11 @@ useEffect(() => {
   style={{ position: "relative", cursor: "pointer" }}
 >
   {/* Profile image */}
-  <img
+ <img
   src={
-    fullUser?.picture ||
     profileImage ||
+    profileData.picture ||
+    fullUser?.picture ||
     "https://cdn-icons-png.flaticon.com/512/847/847969.png"
   }
   alt=""
@@ -361,14 +449,17 @@ useEffect(() => {
 />
 
 
+
+
   {/* Hidden file input */}
   <input
-    type="file"
-    accept="image/*"
-    ref={fileInputRef}
-    onChange={handleProfileChange}
-    style={{ display: "none" }}
-  />
+  type="file"
+  id="profilePicInput"
+  style={{ display: "none" }}
+  accept="image/*"
+  onChange={handleProfileChange}
+/>
+
 
   {/* Dropdown menu */}
   {isDropdownOpen && (
@@ -409,30 +500,10 @@ useEffect(() => {
     </div>
   )}
 </div>
-
           </div>
         </header>
-        <div className="dashboard-content">
-          <div className="cards">
-            {cards.map(({ title, value, dark, route }) => (
-              <div 
-                key={title} 
-                className="card-link"
-                onClick={() => {
-                  if (route) {
-                    window.location.href = route;
-                  }
-                }}
-              >
-                <div className={`card ${dark ? "dark" : ""}`}>
-                  <h3 className="card-title">{title}</h3>
-                  <p className="card-number">{value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
 
-
+        
          {isProfileModalOpen && (
   <div className="profile-modal-overlay">
     <div className="profile-modal-container">
@@ -442,17 +513,17 @@ useEffect(() => {
         {/* Profile Image Section */}
         <div className="profile-modal-image-section">
           <img
-            src={
-              fullUser?.picture ||
-              profileImage ||
-              "https://via.placeholder.com/120"
-            }
-            alt="Profile"
-            className="profile-modal-image"
-            onClick={() =>
-              document.getElementById("profilePicInput").click()
-            }
-          />
+  src={
+    profileData.picture ||
+    profileImage ||
+    fullUser?.picture ||
+    "https://via.placeholder.com/120"
+  }
+  alt="Profile"
+  className="profile-modal-image"
+  onClick={() => document.getElementById("profilePicInput").click()}
+/>
+
           <input
             type="file"
             id="profilePicInput"
@@ -511,6 +582,13 @@ useEffect(() => {
           Save Changes
         </button>
         <button
+          className="profile-modal-btn profile-modal-btn-change-password"
+          
+          onClick={() => setIsPasswordModalOpen(true)}  // Updated: Open the password modal
+        >
+          Change Password
+        </button>
+        <button
           className="profile-modal-btn profile-modal-btn-cancel"
           onClick={() => setIsProfileModalOpen(false)}
         >
@@ -521,8 +599,96 @@ useEffect(() => {
   </div>
 )}
 
+{/* Password Change Modal */}
+{isPasswordModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">Change Password</h2>
+
+      <div className="profile-modal-content">
+        {/* Form Section */}
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+  <label className="profile-modal-label">Current Password</label>
+  <input
+    type="password"
+    className="profile-modal-input"
+    value={passwordData.currentPassword}
+    onChange={(e) =>
+      setPasswordData({ ...passwordData, currentPassword: e.target.value })
+    }
+  />
+</div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, newPassword: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Confirm New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+     <div className="profile-modal-actions">
+  <button
+    className="profile-modal-btn profile-modal-btn-change-password"
+    onClick={handleChangePassword} // ✅ Submit the password change
+  >
+    Change Password
+  </button>
+  <button
+    className="profile-modal-btn profile-modal-btn-cancel"
+    onClick={() => setIsPasswordModalOpen(false)}
+  >
+    Cancel
+  </button>
+</div>
+
+      
+    </div>
+  </div>
+)}
 
 
+
+
+        <div className="dashboard-content">
+          <div className="cards">
+            {cards.map(({ title, value, dark, route }) => (
+              <div 
+                key={title} 
+                className="card-link"
+                onClick={() => {
+                  if (route) {
+                    window.location.href = route;
+                  }
+                }}
+              >
+                <div className={`card ${dark ? "dark" : ""}`}>
+                  <h3 className="card-title">{title}</h3>
+                  <p className="card-number">{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div className="dashboard-grid">
   {/* 🥧 Pie Chart */}

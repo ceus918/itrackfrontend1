@@ -1057,3 +1057,13 @@ margin-right: 15px;
   cursor: pointer;
   accent-color: #007bff; /* optional: change checkbox color */
 }
+
+
+
+.force-width {
+  width: 570px !important;
+}
+
+.force-width2 {
+  width: 550px !important;
+}

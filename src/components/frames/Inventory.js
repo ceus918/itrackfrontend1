@@ -15,7 +15,8 @@ const Inventory = () => {
   unitName: '',
   unitId: '',
   bodyColor: '',
-  variation: ''
+  variation: '',
+  status: 'In Stockyard'   // default
 });
 
 
@@ -26,6 +27,7 @@ const Inventory = () => {
 const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 const [userRole, setUserRole] = useState(null);
 const [currentUser, setCurrentUser] = useState(null);
+
 const [fullUser, setFullUser] = useState(null);
 const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -33,8 +35,18 @@ const [profileData, setProfileData] = useState({ name: '', phoneno: '', picture:
 const [profileImage, setProfileImage] = useState(null);
 const fileInputRef = React.useRef(null);
 
-
-
+const [user, setUser] = useState([]);
+const [editUser, setEditUser] = useState(null);
+ const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [newUser, setNewUser] = useState({
+  password: "",
+  // other fields...
+});
 
 
 const validateConductionNumber = (value) => {
@@ -76,6 +88,8 @@ const validateConductionNumber = (value) => {
       .catch((error) => console.log(error));
   };
 
+
+
   const handleCreateStock = () => {
     const { unitName, unitId, bodyColor, variation} = newStock;
 
@@ -84,7 +98,6 @@ const validateConductionNumber = (value) => {
     alert(conductionError);
     return;
   }
-
   
     if (!unitName || !unitId || !bodyColor || !variation) {
       alert('All fields are required!');
@@ -94,11 +107,24 @@ const validateConductionNumber = (value) => {
   axios.post("https://itrack-web-backend.onrender.com/api/createStock", newStock)
       .then(() => {
         fetchStock();
-        setNewStock({ unitName: '', unitId: '', bodyColor: '', variation: ''}); // Reset quantity to 1
+        setNewStock({
+  unitName: '',
+  unitId: '',
+  bodyColor: '',
+  variation: '',
+  status: 'In Stockyard'   // reset default
+});
+
         setIsCreateModalOpen(false);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+  console.error("Error creating stock:", error.response || error);
+  alert(error.response?.data?.message || "Failed to add stock");
+});
+
   };
+
+
 
   const handleUpdateStock = (id) => {
   const { unitName, unitId, bodyColor, variation } = editStock;
@@ -109,10 +135,11 @@ const validateConductionNumber = (value) => {
     alert(conductionError);
     return;
   }
-  if (!unitName || !unitId || !bodyColor || !variation) {
-    alert('All fields are required!');
-    return;
-  }
+  if (!unitName || !unitId || !bodyColor || !variation || !editStock.status) {
+  alert('All fields are required!');
+  return;
+}
+
 
   const oldStock = stock.find(item => item._id === id);
 
@@ -247,8 +274,10 @@ const handleDownloadInventoryPDF = () => {
   item.unitId,
   item.bodyColor,
   item.variation,
+  item.status,
   item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : 'N/A'
 ]);
+
 
 autoTable(doc, {
   head: [['Unit Name', 'Conduction Number', 'Body Color', 'Variation', 'Date Added']],
@@ -271,35 +300,21 @@ autoTable(doc, {
 
 const handleProfileChange = (e) => {
   const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const newImage = reader.result;
-      setProfileData((prev) => ({ ...prev, picture: newImage }));
-      setProfileImage(newImage);
+  if (!file) return;
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, newImage);
-      }
-
-      // Create audit log
-      await axios.post(
-        "https://itrack-web-backend.onrender.com/api/audit-trail",
-        {
-          action: "Update",
-          resource: "Profile Image",
-          performedBy: fullUser.email || fullUser.name,
-          details: "Profile picture changed",
-          timestamp: new Date().toISOString(),
-        },
-        { withCredentials: true }
-      );
-    };
-    reader.readAsDataURL(file);
-  }
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const newImage = reader.result;
+    // ONLY update modal state, no immediate upload or audit log
+    setProfileData(prev => ({ ...prev, picture: newImage }));
+    setProfileImage(newImage); // preview in modal
+  };
+  reader.readAsDataURL(file);
 };
 
-const handleUpdateProfile = () => {
+
+
+  const handleUpdateProfile = async () => {
   if (!profileData.name || !profileData.phoneno) {
     alert("Name and phone number are required.");
     return;
@@ -311,22 +326,38 @@ const handleUpdateProfile = () => {
     picture: profileData.picture,
   };
 
-  axios
-    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, updatedData)
-    .then(() => {
-      alert("Profile updated successfully!");
-      setFullUser({ ...fullUser, ...updatedData });
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
-      }
-      setIsProfileModalOpen(false);
-    })
-    .catch((error) => {
-      console.error("Update failed:", error);
-      alert("Failed to update profile.");
-    });
-};
+  try {
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`,
+      updatedData
+    );
 
+    // ✅ update frontend state
+    setFullUser({ ...fullUser, ...updatedData });
+    if (fullUser?.email) {
+      localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
+    }
+
+    // ✅ log audit only after save
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/audit-trail",
+      {
+        action: "Update",
+        resource: "User",
+        performedBy: fullUser.name,
+        details: { summary: "Profile picture changed" },
+        timestamp: new Date().toISOString(),
+      },
+      { withCredentials: true }
+    );
+
+    alert("Profile updated successfully!");
+    setIsProfileModalOpen(false);
+  } catch (error) {
+    console.error("Update failed:", error);
+    alert("Failed to update profile.");
+  }
+};
 
 useEffect(() => {
   const handleClickOutside = (e) => {
@@ -428,6 +459,75 @@ const UnitDropdown = () => {
   const [selectedVariation, setSelectedVariation] = useState("");
 }
 
+const fetchUsers = () => {
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      setCurrentUser(user);
+      if (user && user.email) {
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+          .then(res => {
+            const found = res.data.find(u => u.email === user.email);
+            setFullUser(found);
+          })
+          .catch(() => setFullUser(null));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
+  const handleChangePassword = () => {
+  if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    alert("All fields are required.");
+    return;
+  }
+
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    alert("New password and confirm password do not match.");
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    alert("New password must be at least 8 characters long.");
+    return;
+  }
+
+  // ✅ Check if entered current password matches the user's existing one
+  if (passwordData.currentPassword !== fullUser.password) {
+    alert("Incorrect current password. Please try again.");
+    return;
+  }
+
+  // ✅ Update password
+  axios
+    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, {
+      ...fullUser,
+      password: passwordData.newPassword, // only change password
+    })
+    .then(() => {
+      alert("Password updated successfully!");
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setIsPasswordModalOpen(false);
+      fetchUsers(); // refresh user list if needed
+    })
+    .catch((error) => {
+      console.error("Failed to update password:", error);
+      alert("Error updating password. Please try again.");
+    });
+};
+
 
 
   return (
@@ -442,97 +542,111 @@ const UnitDropdown = () => {
   </div>
 
   {/* Profile section on the right */}
-  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-    {fullUser && fullUser.name && (
+  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0px' }}>
+            {fullUser && fullUser.name && (
+  <div
+    className="loggedinuser"
+    onClick={() => {
+      setProfileData({
+        name: fullUser.name,
+        phoneno: fullUser.phoneno,
+        picture: fullUser.picture || ''
+      });
+      setIsProfileModalOpen(true);
+    }}
+    style={{
+   
+      fontWeight: 500,
+      fontSize: 15,
+      cursor: 'pointer',
+  
+    }}
+  >
+    Welcome, {fullUser.name}
+  </div>
+)}
+
+
+            <div
+  className="profile-wrapper"
+  style={{ position: "relative", cursor: "pointer" }}
+>
+  {/* Profile image */}
+ <img
+  src={
+    profileImage ||
+    profileData.picture ||
+    fullUser?.picture ||
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+  }
+  alt=""
+  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+  style={{
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    border: "2px solid #ffffff",
+    objectFit: "cover",
+  }}
+/>
+
+
+
+
+  {/* Hidden file input */}
+  <input
+  type="file"
+  id="profilePicInput"
+  style={{ display: "none" }}
+  accept="image/*"
+  onChange={handleProfileChange}
+/>
+
+
+  {/* Dropdown menu */}
+  {isDropdownOpen && (
+    <div
+      className="profile-dropdown"
+      style={{
+        position: "absolute",
+        top: "50px",
+        right: 0,
+        backgroundColor: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        zIndex: 1000,
+        width: "150px",
+      }}
+    >
       <div
-        className="loggedinuser"
         onClick={() => {
+          setIsDropdownOpen(false);
           setProfileData({
             name: fullUser.name,
             phoneno: fullUser.phoneno,
-            picture: fullUser.picture || ''
+            picture: fullUser.picture || "",
           });
           setIsProfileModalOpen(true);
         }}
         style={{
-          fontWeight: 500,
-          fontSize: 15,
-          cursor: 'pointer',
+          padding: "10px 12px",
+          cursor: "pointer",
+          color: "#393939ff",
+          fontSize: "13px",
+          borderBottom: "1px solid #eee",
         }}
       >
-        Welcome, {fullUser.name}
+        Edit Profile
       </div>
-    )}
-
-    <div
-      className="profile-wrapper"
-      style={{ cursor: 'pointer' }}
-    >
-      <img
-        src={fullUser?.picture || profileImage || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
-        alt=""
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          border: "2px solid #ffffff",
-          objectFit: "cover",
-        }}
-      />
-
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleProfileChange}
-        style={{ display: "none" }}
-      />
-
-      {isDropdownOpen && (
-        <div
-          className="profile-dropdown"
-          style={{
-            position: "absolute",
-            top: "50px",
-            right: 0,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-            zIndex: 1000,
-            width: "150px",
-          }}
-        >
-          <div
-            onClick={() => {
-              setIsDropdownOpen(false);
-              setProfileData({
-                name: fullUser.name,
-                phoneno: fullUser.phoneno,
-                picture: fullUser.picture || "",
-              });
-              setIsProfileModalOpen(true);
-            }}
-            style={{
-              padding: "10px 12px",
-              cursor: "pointer",
-              color: "#393939ff",
-              fontSize: "13px",
-              borderBottom: "1px solid #eee",
-            }}
-          >
-            Edit Profile
-          </div>
-        </div>
-      )}
     </div>
-  </div>
-</header>
+  )}
+</div>
+          </div>
+        </header>
 
-
-
-        {isProfileModalOpen && (
+        
+         {isProfileModalOpen && (
   <div className="profile-modal-overlay">
     <div className="profile-modal-container">
       <h2 className="profile-modal-title">Edit Profile</h2>
@@ -541,17 +655,17 @@ const UnitDropdown = () => {
         {/* Profile Image Section */}
         <div className="profile-modal-image-section">
           <img
-            src={
-              fullUser?.picture ||
-              profileImage ||
-              "https://via.placeholder.com/120"
-            }
-            alt="Profile"
-            className="profile-modal-image"
-            onClick={() =>
-              document.getElementById("profilePicInput").click()
-            }
-          />
+  src={
+    profileData.picture ||
+    profileImage ||
+    fullUser?.picture ||
+    "https://via.placeholder.com/120"
+  }
+  alt="Profile"
+  className="profile-modal-image"
+  onClick={() => document.getElementById("profilePicInput").click()}
+/>
+
           <input
             type="file"
             id="profilePicInput"
@@ -610,6 +724,13 @@ const UnitDropdown = () => {
           Save Changes
         </button>
         <button
+          className="profile-modal-btn profile-modal-btn-change-password"
+          
+          onClick={() => setIsPasswordModalOpen(true)}  // Updated: Open the password modal
+        >
+          Change Password
+        </button>
+        <button
           className="profile-modal-btn profile-modal-btn-cancel"
           onClick={() => setIsProfileModalOpen(false)}
         >
@@ -619,6 +740,77 @@ const UnitDropdown = () => {
     </div>
   </div>
 )}
+
+{/* Password Change Modal */}
+{isPasswordModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">Change Password</h2>
+
+      <div className="profile-modal-content">
+        {/* Form Section */}
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+  <label className="profile-modal-label">Current Password</label>
+  <input
+    type="password"
+    className="profile-modal-input"
+    value={passwordData.currentPassword}
+    onChange={(e) =>
+      setPasswordData({ ...passwordData, currentPassword: e.target.value })
+    }
+  />
+</div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, newPassword: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Confirm New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+     <div className="profile-modal-actions">
+  <button
+    className="profile-modal-btn profile-modal-btn-change-password"
+    onClick={handleChangePassword} // ✅ Submit the password change
+  >
+    Change Password
+  </button>
+  <button
+    className="profile-modal-btn profile-modal-btn-cancel"
+    onClick={() => setIsPasswordModalOpen(false)}
+  >
+    Cancel
+  </button>
+</div>
+
+      
+    </div>
+  </div>
+)}
+
+
+
 
         <div className="user-management-header" style={{ gap: 0 }}>
           <button 
@@ -823,6 +1015,25 @@ const UnitDropdown = () => {
                 ))}
             </select>
           </div>
+
+<div className="modal-form-group">
+            <label>
+              Variation <span style={{ color: "red" }}>*</span>
+            </label>
+         <select
+  value={newStock.status}
+  onChange={(e) =>
+    setNewStock({ ...newStock, status: e.target.value })
+  }
+  className="modal-input force-width" 
+>
+  <option value="In Stockyard">In Stockyard</option>
+  <option value="Available">Available</option>
+</select>
+</div>
+
+
+
         </div>
 
         {/* ------------------ BUTTONS ------------------ */}
@@ -935,6 +1146,22 @@ const UnitDropdown = () => {
                 ))}
             </select>
           </div>
+
+          <div className="modal-form-group">
+  <label>Status</label>
+  <select
+    value={editStock.status}
+    onChange={(e) =>
+      setEditStock({ ...editStock, status: e.target.value })
+    }
+    className="modal-input"
+  >
+    <option value="In Stockyard">In Stockyard</option>
+    <option value="Available">Available</option>
+  </select>
+</div>
+
+
         </div>
 
         {/* ------------------ BUTTONS ------------------ */}
@@ -968,6 +1195,8 @@ const UnitDropdown = () => {
               <th>Variation</th>
               <th>Age (In Storage)</th>
               <th>Date Added</th>
+              <th>Status</th>
+
  {/* Added Quantity column header */}
               {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && <th>Actions</th>}
             </tr>
@@ -984,6 +1213,8 @@ const UnitDropdown = () => {
                 <td>{stockItem.variation}</td>
                 <td>{getAgeString(stockItem.createdAt)}</td> 
                 <td>{stockItem.createdAt ? new Date(stockItem.createdAt).toLocaleDateString('en-CA') : 'N/A'}</td>
+                <td>{stockItem.status}</td>
+
  {/* Display quantity in the table */}
                 {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
                   <td>

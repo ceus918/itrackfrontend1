@@ -41,8 +41,28 @@ const DriverAllocation = () => {
   const fileInputRef = React.useRef(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  const [user, setUser] = useState([]);
+    const [editUser, setEditUser] = useState(null);
+     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+      const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      const [newUser, setNewUser] = useState({
+      password: "",
+      // other fields...
+    });
 
-  
+    const [inventory, setInventory] = useState([]);
+
+const fetchInventory = () => {
+  axios
+    .get("https://itrack-web-backend.onrender.com/api/getStock")
+    .then((res) => setInventory(res.data))
+    .catch((err) => console.log(err));
+};
+
 
   const validateConductionNumber = (value) => {
   const regex = /^[A-Za-z0-9]+$/; // only letters and numbers
@@ -61,6 +81,7 @@ const DriverAllocation = () => {
 
   useEffect(() => {
     fetchAllocations();
+    fetchInventory(); 
     getCurrentUser().then(user => {
       setCurrentUser(user);
       if (user && user.email) {
@@ -222,35 +243,21 @@ const handleProfileClick = () => {
 
 const handleProfileChange = (e) => {
   const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const newImage = reader.result;
-      setProfileData((prev) => ({ ...prev, picture: newImage }));
-      setProfileImage(newImage);
+  if (!file) return;
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, newImage);
-      }
-
-      // Create a simple audit log
-      await axios.post(
-        "https://itrack-web-backend.onrender.com/api/audit-trail",
-        {
-          action: "Update",
-          resource: "Profile Image",
-          performedBy: fullUser.email || fullUser.name,
-          details: "Profile picture changed",
-          timestamp: new Date().toISOString(),
-        },
-        { withCredentials: true }
-      );
-    };
-    reader.readAsDataURL(file);
-  }
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const newImage = reader.result;
+    // ONLY update modal state, no immediate upload or audit log
+    setProfileData(prev => ({ ...prev, picture: newImage }));
+    setProfileImage(newImage); // preview in modal
+  };
+  reader.readAsDataURL(file);
 };
 
-const handleUpdateProfile = () => {
+
+
+  const handleUpdateProfile = async () => {
   if (!profileData.name || !profileData.phoneno) {
     alert("Name and phone number are required.");
     return;
@@ -262,22 +269,37 @@ const handleUpdateProfile = () => {
     picture: profileData.picture,
   };
 
-  axios
-    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, updatedData)
-    .then(() => {
-      alert("Profile updated successfully!");
-      setFullUser({ ...fullUser, ...updatedData });
+  try {
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`,
+      updatedData
+    );
 
-      if (fullUser && fullUser.email) {
-        localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
-      }
+    // ✅ update frontend state
+    setFullUser({ ...fullUser, ...updatedData });
+    if (fullUser?.email) {
+      localStorage.setItem(`profileImage_${fullUser.email}`, profileData.picture || "");
+    }
 
-      setIsDropdownOpen(false); // close modal/dropdown if using one
-    })
-    .catch((error) => {
-      console.error("Update failed:", error);
-      alert("Failed to update profile.");
-    });
+    // ✅ log audit only after save
+    await axios.post(
+      "https://itrack-web-backend.onrender.com/api/audit-trail",
+      {
+        action: "Update",
+        resource: "User",
+        performedBy: fullUser.name,
+        details: { summary: "Profile picture changed" },
+        timestamp: new Date().toISOString(),
+      },
+      { withCredentials: true }
+    );
+
+    alert("Profile updated successfully!");
+    setIsProfileModalOpen(false);
+  } catch (error) {
+    console.error("Update failed:", error);
+    alert("Failed to update profile.");
+  }
 };
 
 
@@ -301,7 +323,164 @@ useEffect(() => {
   return () => document.removeEventListener("click", handleClickOutside);
 }, []);
 
+const unitOptions = {
+  "Isuzu D-Max": [
+    "Cab and Chassis",
+    "CC Utility Van Dual AC",
+    "4x2 LT MT",
+    "4x4 LT MT",
+    "4x2 LS-A MT",
+    "4x2 LS-A MT Plus",
+    "4x2 LS-A AT",
+    "4x2 LS-A AT Plus",
+    "4x4 LS-A MT",
+    "4x4 LS-A MT Plus",
+    "4x2 LS-E AT",
+    "4x4 LS-E AT",
+    "4x4 Single Cab MT"
+  ],
+  "Isuzu MU-X": [
+    "1.9L MU-X 4x2 LS AT",
+    "3.0L MU-X 4x2 LS-A AT",
+    "3.0L MU-X 4x2 LS-E AT",
+    "3.0L MU-X 4x4 LS-E AT"
+  ],
+  "Isuzu Traviz": [
+    "SWB 2.5L 4W 9FT Cab & Chassis",
+    "SWB 2.5L 4W 9FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Cab & Chassis",
+    "LWB 2.5L 4W 10FT Utility Van Dual AC",
+    "LWB 2.5L 4W 10FT Aluminum Van",
+    "LWB 2.5L 4W 10FT Aluminum Van w/ Single AC",
+    "LWB 2.5L 4W 10FT Dropside Body",
+    "LWB 2.5L 4W 10FT Dropside Body w/ Single AC"
+  ],
+  "Isuzu QLR Series": [
+    "QLR77 E Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt 3.0L 4W 10ft 60A Cab & Chassis",
+    "QLR77 E Non-Tilt Utility Van w/o AC",
+    "QLR77 E Non-Tilt Utility Van Dual AC"
+  ],
+  "Isuzu NLR Series": [
+    "NLR77 H Tilt 3.0L 4W 14ft 60A",
+    "NLR77 H Jeepney Chassis (135A)",
+    "NLR85 Tilt 3.0L 4W 10ft 90A",
+    "NLR85E Smoother"
+  ],
+  "Isuzu NMR Series": [
+    "NMR85H Smoother",
+    "NMR85 H Tilt 3.0L 6W 14ft 80A Non-AC"
+  ],
+  "Isuzu NPR Series": [
+    "NPR85 Tilt 3.0L 6W 16ft 90A",
+    "NPR85 Cabless for Armored"
+  ],
+  "Isuzu NPS Series": [
+    "NPS75 H 3.0L 6W 16ft 90A"
+  ],
+  "Isuzu NQR Series": [
+    "NQR75L Smoother",
+    "NQR75 Tilt 5.2L 6W 18ft 90A"
+  ],
+  "Isuzu FRR Series": [
+    "FRR90M 6W 20ft 5.2L",
+    "FRR90M Smoother"
+  ],
+  "Isuzu FTR Series": [
+    "FTR90M 6W 19ft 5.2L"
+  ],
+  "Isuzu FVR Series": [
+    "FVR34Q Smoother",
+    "FVR 34Q 6W 24ft 7.8L w/ ABS"
+  ],
+  "Isuzu FTS Series": [
+    "FTS34 J",
+    "FTS34L"
+  ],
+  "Isuzu FVM Series": [
+    "FVM34T 10W 26ft 7.8L w/ ABS",
+    "FVM34W 10W 32ft 7.8L w/ ABS"
+  ],
+  "Isuzu FXM Series": ["FXM60W"],
+  "Isuzu GXZ Series": ["GXZ60N"],
+  "Isuzu EXR Series": ["EXR77H 380PS 6W Tractor Head"]
+};
 
+const UnitDropdown = () => {
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [selectedVariation, setSelectedVariation] = useState("");
+}
+
+
+const fetchUsers = () => {
+    axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      setCurrentUser(user);
+      if (user && user.email) {
+        axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+          .then(res => {
+            const found = res.data.find(u => u.email === user.email);
+            setFullUser(found);
+          })
+          .catch(() => setFullUser(null));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
+  const handleChangePassword = () => {
+  if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    alert("All fields are required.");
+    return;
+  }
+
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    alert("New password and confirm password do not match.");
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    alert("New password must be at least 8 characters long.");
+    return;
+  }
+
+  // ✅ Check if entered current password matches the user's existing one
+  if (passwordData.currentPassword !== fullUser.password) {
+    alert("Incorrect current password. Please try again.");
+    return;
+  }
+
+  // ✅ Update password
+  axios
+    .put(`https://itrack-web-backend.onrender.com/api/updateUser/${fullUser._id}`, {
+      ...fullUser,
+      password: passwordData.newPassword, // only change password
+    })
+    .then(() => {
+      alert("Password updated successfully!");
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setIsPasswordModalOpen(false);
+      fetchUsers(); // refresh user list if needed
+    })
+    .catch((error) => {
+      console.error("Failed to update password:", error);
+      alert("Error updating password. Please try again.");
+    });
+};
 
 
 
@@ -316,96 +495,111 @@ useEffect(() => {
   </div>
 
   {/* Profile section on the right */}
-  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-    {fullUser && fullUser.name && (
+  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0px' }}>
+            {fullUser && fullUser.name && (
+  <div
+    className="loggedinuser"
+    onClick={() => {
+      setProfileData({
+        name: fullUser.name,
+        phoneno: fullUser.phoneno,
+        picture: fullUser.picture || ''
+      });
+      setIsProfileModalOpen(true);
+    }}
+    style={{
+   
+      fontWeight: 500,
+      fontSize: 15,
+      cursor: 'pointer',
+  
+    }}
+  >
+    Welcome, {fullUser.name}
+  </div>
+)}
+
+
+            <div
+  className="profile-wrapper"
+  style={{ position: "relative", cursor: "pointer" }}
+>
+  {/* Profile image */}
+ <img
+  src={
+    profileImage ||
+    profileData.picture ||
+    fullUser?.picture ||
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+  }
+  alt=""
+  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+  style={{
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    border: "2px solid #ffffff",
+    objectFit: "cover",
+  }}
+/>
+
+
+
+
+  {/* Hidden file input */}
+  <input
+  type="file"
+  id="profilePicInput"
+  style={{ display: "none" }}
+  accept="image/*"
+  onChange={handleProfileChange}
+/>
+
+
+  {/* Dropdown menu */}
+  {isDropdownOpen && (
+    <div
+      className="profile-dropdown"
+      style={{
+        position: "absolute",
+        top: "50px",
+        right: 0,
+        backgroundColor: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        zIndex: 1000,
+        width: "150px",
+      }}
+    >
       <div
-        className="loggedinuser"
         onClick={() => {
+          setIsDropdownOpen(false);
           setProfileData({
             name: fullUser.name,
             phoneno: fullUser.phoneno,
-            picture: fullUser.picture || ''
+            picture: fullUser.picture || "",
           });
           setIsProfileModalOpen(true);
         }}
         style={{
-          fontWeight: 500,
-          fontSize: 15,
-          cursor: 'pointer',
+          padding: "10px 12px",
+          cursor: "pointer",
+          color: "#393939ff",
+          fontSize: "13px",
+          borderBottom: "1px solid #eee",
         }}
       >
-        Welcome, {fullUser.name}
+        Edit Profile
       </div>
-    )}
-
-    <div
-      className="profile-wrapper"
-      style={{ cursor: 'pointer' }}
-    >
-      <img
-        src={fullUser?.picture || profileImage || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
-        alt=""
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          border: "2px solid #ffffff",
-          objectFit: "cover",
-        }}
-      />
-
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleProfileChange}
-        style={{ display: "none" }}
-      />
-
-      {isDropdownOpen && (
-        <div
-          className="profile-dropdown"
-          style={{
-            position: "absolute",
-            top: "50px",
-            right: 0,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-            zIndex: 1000,
-            width: "150px",
-          }}
-        >
-          <div
-            onClick={() => {
-              setIsDropdownOpen(false);
-              setProfileData({
-                name: fullUser.name,
-                phoneno: fullUser.phoneno,
-                picture: fullUser.picture || "",
-              });
-              setIsProfileModalOpen(true);
-            }}
-            style={{
-              padding: "10px 12px",
-              cursor: "pointer",
-              color: "#393939ff",
-              fontSize: "13px",
-              borderBottom: "1px solid #eee",
-            }}
-          >
-            Edit Profile
-          </div>
-        </div>
-      )}
     </div>
-  </div>
-</header>
+  )}
+</div>
+          </div>
+        </header>
 
-
- {isProfileModalOpen && (
+        
+         {isProfileModalOpen && (
   <div className="profile-modal-overlay">
     <div className="profile-modal-container">
       <h2 className="profile-modal-title">Edit Profile</h2>
@@ -414,17 +608,17 @@ useEffect(() => {
         {/* Profile Image Section */}
         <div className="profile-modal-image-section">
           <img
-            src={
-              fullUser?.picture ||
-              profileImage ||
-              "https://via.placeholder.com/120"
-            }
-            alt="Profile"
-            className="profile-modal-image"
-            onClick={() =>
-              document.getElementById("profilePicInput").click()
-            }
-          />
+  src={
+    profileData.picture ||
+    profileImage ||
+    fullUser?.picture ||
+    "https://via.placeholder.com/120"
+  }
+  alt="Profile"
+  className="profile-modal-image"
+  onClick={() => document.getElementById("profilePicInput").click()}
+/>
+
           <input
             type="file"
             id="profilePicInput"
@@ -483,6 +677,13 @@ useEffect(() => {
           Save Changes
         </button>
         <button
+          className="profile-modal-btn profile-modal-btn-change-password"
+          
+          onClick={() => setIsPasswordModalOpen(true)}  // Updated: Open the password modal
+        >
+          Change Password
+        </button>
+        <button
           className="profile-modal-btn profile-modal-btn-cancel"
           onClick={() => setIsProfileModalOpen(false)}
         >
@@ -492,6 +693,75 @@ useEffect(() => {
     </div>
   </div>
 )}
+
+{/* Password Change Modal */}
+{isPasswordModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">Change Password</h2>
+
+      <div className="profile-modal-content">
+        {/* Form Section */}
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+  <label className="profile-modal-label">Current Password</label>
+  <input
+    type="password"
+    className="profile-modal-input"
+    value={passwordData.currentPassword}
+    onChange={(e) =>
+      setPasswordData({ ...passwordData, currentPassword: e.target.value })
+    }
+  />
+</div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, newPassword: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Confirm New Password</label>
+            <input
+              type="password"
+              className="profile-modal-input"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+     <div className="profile-modal-actions">
+  <button
+    className="profile-modal-btn profile-modal-btn-change-password"
+    onClick={handleChangePassword} // ✅ Submit the password change
+  >
+    Change Password
+  </button>
+  <button
+    className="profile-modal-btn profile-modal-btn-cancel"
+    onClick={() => setIsPasswordModalOpen(false)}
+  >
+    Cancel
+  </button>
+</div>
+
+      
+    </div>
+  </div>
+)}
+
 
         <div className="user-management-header" >
           <button 
@@ -644,70 +914,81 @@ useEffect(() => {
         </div>
 
 
-        {isCreateModalOpen && (
+       {isCreateModalOpen && (
   <div className="modal-overlay">
     <div className="modal">
-        <p className='modaltitle'>Allocate Driver</p>
-
-            <div className='modalline'> 
-            </div>
+      <p className="modaltitle">Allocate Driver</p>
+      <div className="modalline"></div>
 
       <div className="modal-content">
         <div className="modal-form">
-          <div className="modal-form-group">
-            <label>Unit Name</label>
-            <input
-              type="text"
-              value={newAllocation.unitName}
-              onChange={(e) =>
-                setNewAllocation({ ...newAllocation, unitName: e.target.value })
-              }
-            />
-          </div>
+          {/* ------------------ UNIT NAME ------------------ */}
+          {/* UNIT NAME */}
+<div className="modal-form-group">
+  <label>Unit Name</label>
+  <select
+  value={newAllocation.unitId}
+  onChange={(e) => {
+    const selected = inventory.find(i => i._id === e.target.value);
 
-          <div className="modal-form-group">
-            <label>Conduction Number</label>
-            <input
-              type="text"
-              value={newAllocation.unitId}
-              onChange={(e) =>
-                setNewAllocation({ ...newAllocation, unitId: e.target.value })
-              }
-            />
-          </div>
+    if (selected) {
+      setNewAllocation({
+        ...newAllocation,
+        unitName: selected.unitName,
+        unitId: selected.unitId,
+        bodyColor: selected.bodyColor,
+        variation: selected.variation
+      });
+    }
+  }}
+>
+  <option value="">Select Unit</option>
+  {inventory.map(item => (
+    <option key={item._id} value={item._id}>
+      {item.unitName} — {item.bodyColor} — {item.unitId}
+    </option>
+  ))}
+</select>
 
-          <div className="modal-form-group">
-            <label>Body Color</label>
-            <input
-              type="text"
-              value={newAllocation.bodyColor}
-              onChange={(e) =>
-                setNewAllocation({ ...newAllocation, bodyColor: e.target.value })
-              }
-            />
-          </div>
+</div>
 
-          <div className="modal-form-group">
-            <label>Variation</label>
-            <select value={newAllocation.variation}onChange={(e) => setNewAllocation({ ...newAllocation, variation: e.target.value }) }>
-               <option value="">Select Variation</option>
-               <option value="4x2 LSA">4x2 LSA</option>
-               <option value="4x4">4x4</option>
-               <option value="LS-E">LS-E</option>
-               <option value="LS">LS</option>
-               </select>
-               </div>
+{/* CONDUCTION NUMBER — READ ONLY */}
+<div className="modal-form-group">
+  <label>Conduction Number</label>
+  <input type="text" value={newAllocation.unitId} readOnly />
+</div>
+
+{/* BODY COLOR — READ ONLY */}
+<div className="modal-form-group">
+  <label>Body Color</label>
+  <input type="text" value={newAllocation.bodyColor} readOnly />
+</div>
+
+{/* VARIATION — READ ONLY */}
+<div className="modal-form-group">
+  <label>Variation</label>
+  <input type="text" value={newAllocation.variation} readOnly />
+</div>
+
+
+
+         
 
           <div className="modal-form-group">
             <label>Assigned Driver</label>
-            <select value={newAllocation.assignedDriver} onChange={(e) => setNewAllocation({ ...newAllocation, assignedDriver: e.target.value }) }>
-               <option value="">Select Driver</option>
-               {drivers.map((driver) => (
-                <option key={driver._id} value={driver.name}>{driver.name}
+            <select
+              value={newAllocation.assignedDriver}
+              onChange={(e) =>
+                setNewAllocation({ ...newAllocation, assignedDriver: e.target.value })
+              }
+            >
+              <option value="">Select Driver</option>
+              {drivers.map((driver) => (
+                <option key={driver._id} value={driver.name}>
+                  {driver.name}
                 </option>
-               ))}
-               </select>
-
+              ))}
+            </select>
           </div>
 
           <div className="modal-form-group">
@@ -720,13 +1001,15 @@ useEffect(() => {
             >
               <option value="Pending">Pending</option>
               <option value="In Transit">In Transit</option>
-              <option value="Completed">Completed</option>
+              <option value="Available">Available</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Completed">Released</option>
             </select>
           </div>
 
-          <div className="modal-form-group">
+          <div className="modal-form-group force-width">
             <label>Date</label>
-            <input
+            <input className="modal-form-group force-width2"
               type="date"
               value={newAllocation.date}
               onChange={(e) =>
@@ -737,21 +1020,29 @@ useEffect(() => {
         </div>
 
         <div className="modal-buttons">
-          <button className="create-btn3" onClick={handleCreate}>Confirm</button>
-          <button className="cancel-btn3" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+          <button className="create-btn3" onClick={handleCreate}>
+            Confirm
+          </button>
+          <button
+            className="cancel-btn3"
+            onClick={() => setIsCreateModalOpen(false)}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
   </div>
 )}
-
 {editAllocation && (
   <div className="modal-overlay">
     <div className="modal">
-      <p className='modaltitle'>Edit Allocation</p>
-      <div className='modalline'> 
+      <p className="modaltitle">Edit Allocation</p>
+      <div className="modalline"></div>
       <div className="modal-content">
         <div className="modal-form">
+
+          {/* ------------------ UNIT NAME (MANUAL INPUT) ------------------ */}
           <div className="modal-form-group">
             <label>Unit Name</label>
             <input
@@ -763,6 +1054,7 @@ useEffect(() => {
             />
           </div>
 
+          {/* ------------------ CONDUCTION NUMBER (MANUAL) ------------------ */}
           <div className="modal-form-group">
             <label>Conduction Number</label>
             <input
@@ -774,6 +1066,7 @@ useEffect(() => {
             />
           </div>
 
+          {/* ------------------ BODY COLOR (MANUAL INPUT) ------------------ */}
           <div className="modal-form-group">
             <label>Body Color</label>
             <input
@@ -785,31 +1078,37 @@ useEffect(() => {
             />
           </div>
 
+          {/* ------------------ VARIATION (MANUAL INPUT) ------------------ */}
           <div className="modal-form-group">
             <label>Variation</label>
-            <select value={editAllocation.variation}
-            onChange={(e) =>setEditAllocation({ ...editAllocation, variation: e.target.value })}>
-               <option value="">Select Variation</option>
-               <option value="4x2 LSA">4x2 LSA</option>
-               <option value="4x4">4x4</option>
-               <option value="LS-E">LS-E</option>
-               <option value="LS">LS</option>
-              </select>
-              </div>
-
-
-          <div className="modal-form-group">
-            <label>Assigned Driver</label>
-            <select value={editAllocation.assignedDriver} onChange={(e) =>setEditAllocation({ ...editAllocation, assignedDriver: e.target.value })}>
-              <option value="">Select Driver</option>
-              {drivers.map((driver) => (
-                <option key={driver._id} value={driver.name}> {driver.name}
-                </option>
-              ))}
-              </select>
-
+            <input
+              type="text"
+              value={editAllocation.variation}
+              onChange={(e) =>
+                setEditAllocation({ ...editAllocation, variation: e.target.value })
+              }
+            />
           </div>
 
+          {/* ------------------ ASSIGNED DRIVER ------------------ */}
+          <div className="modal-form-group">
+            <label>Assigned Driver</label>
+            <select
+              value={editAllocation.assignedDriver}
+              onChange={(e) =>
+                setEditAllocation({ ...editAllocation, assignedDriver: e.target.value })
+              }
+            >
+              <option value="">Select Driver</option>
+              {drivers.map((driver) => (
+                <option key={driver._id} value={driver.name}>
+                  {driver.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ------------------ STATUS ------------------ */}
           <div className="modal-form-group">
             <label>Status</label>
             <select
@@ -820,20 +1119,30 @@ useEffect(() => {
             >
               <option value="Pending">Pending</option>
               <option value="In Transit">In Transit</option>
-              <option value="Completed">Completed</option>
+              <option value="Available">Available</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Completed">Released</option>
             </select>
           </div>
         </div>
 
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={() => handleUpdate(editAllocation._id)}>Save</button>
-          <button className="cancel-btn1" onClick={() => setEditAllocation(null)}>Cancel</button>
+          <button
+            className="create-btn1"
+            onClick={() => handleUpdate(editAllocation._id)}
+          >
+            Save
+          </button>
+          <button className="cancel-btn1" onClick={() => setEditAllocation(null)}>
+            Cancel
+          </button>
         </div>
-      </div>
       </div>
     </div>
   </div>
 )}
+
+
 
 
       </div>

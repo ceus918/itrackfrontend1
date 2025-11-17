@@ -14,12 +14,14 @@
   http-equiv="Content-Security-Policy"
   content="
     default-src 'self' https://itrack-web-backend.onrender.com;
-    connect-src 'self' https://itrack-web-backend.onrender.com;
-    img-src 'self' data: https://*.tile.openstreetmap.org https://*.openstreetmap.org;
-    script-src 'self';
+    connect-src 'self' https://itrack-web-backend.onrender.com https://maps.googleapis.com https://maps.gstatic.com;
+    img-src 'self' data: https://*.tile.openstreetmap.org https://*.openstreetmap.org https://maps.gstatic.com https://maps.googleapis.com;
+    script-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
+    font-src 'self' https://fonts.gstatic.com https://maps.gstatic.com data:;
   "
 />
+
 
    
 
