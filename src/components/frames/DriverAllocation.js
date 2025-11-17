@@ -837,7 +837,8 @@ const fetchUsers = () => {
         <td>{item.variation}</td>
         <td>{item.assignedDriver}</td>
         <td>
-          <span className={`status-badge ${item.status.toLowerCase().replace(' ', '-')}`}>
+          <span className={`status-badge ${(item.status || "").toLowerCase().replace(' ', '-')}`}>
+
             {item.status}
           </span>
         </td>

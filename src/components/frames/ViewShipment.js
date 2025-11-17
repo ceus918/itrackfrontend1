@@ -6,10 +6,9 @@ import "../css/ServiceRequest.css";
 import truckIconImg from "../icons/truck1.png";
 
 const defaultCenter = {
-  lat: 15.5995,
-  lng: 120.9842,
+  lat: 14.3336,  // Latitude for Biñan, Laguna
+  lng: 121.0830, // Longitude for Biñan, Laguna
 };
-
 const isValidLatLng = (lat, lng) =>
   typeof lat === "number" &&
   typeof lng === "number" &&
@@ -20,7 +19,8 @@ const ViewShipment = ({ isOpen, onClose, data }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyAT5fZoyDVluzfdq4Rz2uuVJDocqBLDTGo",
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+
   });
 
   useEffect(() => {
