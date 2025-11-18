@@ -173,13 +173,14 @@ useEffect(() => {
 const handleDownloadPDF = () => {
   const doc = new jsPDF();
   let y = 15;
-  doc.setFontSize(16);
-  doc.text('Reports', 14, y);
-  y += 8;
+  doc.setFontSize(13);
+  doc.text('I-Track Reports', 13, y);
+  y += 10;
 
   // Vehicle Preparation Table
-  doc.setFontSize(13);
-  doc.text('Vehicle Preparation', 14, y);
+  y += 10; 
+  doc.setFontSize(11);
+  doc.text('Vehicle Preparation', 11, y);
   y += 4;
   const prepData = (filteredRequests.length > 0 ? filteredRequests : [...inProgressRequests, ...requests]).map(req => [
     req.completedAt
@@ -207,14 +208,16 @@ const handleDownloadPDF = () => {
     body: prepData,
     startY: y + 2,
     theme: 'grid',
-    styles: { fontSize: 10 },
+    styles: { fontSize: 10, },
     margin: { left: 14, right: 14 },
+
   });
   y = doc.lastAutoTable.finalY + 8;
 
   // Vehicle Shipment Table
-  doc.setFontSize(13);
-  doc.text('Vehicle Shipment', 14, y);
+  y += 10; 
+  doc.setFontSize(11);
+  doc.text('Vehicle Shipment', 11, y);
   y += 4;
   const shipmentData = completedAllocations.map(item => [
     item.date ? new Date(item.date).toLocaleDateString('en-CA') : (item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : ''),
@@ -235,8 +238,9 @@ const handleDownloadPDF = () => {
   y = doc.lastAutoTable.finalY + 8;
 
   // Stocks Summary Table
-  doc.setFontSize(13);
-  doc.text('Stocks Summary', 14, y);
+  y += 10; 
+  doc.setFontSize(11);
+  doc.text('Stocks Summary', 11, y);
   y += 4;
   const stockData = unitSummary.map(item => [item.unitName, item.quantity]);
   autoTable(doc, {

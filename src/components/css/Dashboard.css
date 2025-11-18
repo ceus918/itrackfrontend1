@@ -290,8 +290,6 @@
 
 
 
-
-
         .card-title {
           font-size: 16px;
           font-weight: 500;
@@ -484,9 +482,11 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 20px;
   transition: all 0.25s ease-in-out;
-  transform: translateY(0);
-  cursor: pointer;
+  min-height: 350px;     /* 🚀 Makes all 4 squares uniform */
+  display: flex;
+  flex-direction: column;
 }
+
 
 .dashboard-item:hover {
   transform: translateY(-5px);
@@ -655,5 +655,23 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+
+/* ==== 2×2 GRID LAYOUT ==== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);  /* EXACT 2 COLUMNS */
+  grid-template-rows: repeat(2, auto);    /* EXACT 2 ROWS */
+  gap: 24px;
+  margin-top: 20px;
+  padding: 24px;
+}
+
+/* Stacking on smaller screens */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }

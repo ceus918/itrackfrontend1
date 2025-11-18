@@ -446,6 +446,7 @@ const fetchUsers = () => {
 
 <div className="modal-content">
   <div className="modal-form">
+
     {/* Date Created */}
     <div className="modal-form-group">
       <label>Date Created <span style={{ color: 'red' }}>*</span></label>
@@ -624,11 +625,12 @@ const fetchUsers = () => {
        <div className='modalline'> 
       <div className="modal-content">
         <div className="modal-form">
+
           <div className="modal-form-group">
             <label>Date Created <span style={{color: 'red'}}>*</span></label>
             <input
               type="date"
-              value={editRequest.dateCreated}
+              value={editRequest.dateCreated || ""}
               onChange={(e) =>
                 setEditRequest({ ...editRequest, dateCreated: e.target.value })
               }
@@ -659,18 +661,28 @@ const fetchUsers = () => {
 </div>
 
 <div className="modal-form-group">
-  <label>Unit Name <span style={{color: 'red'}}>*</span></label>
+  <label>Unit Name <span style={{ color: 'red' }}>*</span></label>
   <select
     value={editRequest.unitName || ''}
-    onChange={e => setEditRequest({ ...editRequest, unitName: e.target.value })}
+    onChange={(e) => {
+      const selectedUnit = inventory.find(u => u.unitName === e.target.value);
+      setEditRequest({
+        ...editRequest,
+        unitName: selectedUnit?.unitName || '',
+        vehicleRegNo: selectedUnit?.unitId || editRequest.vehicleRegNo, 
+      });
+    }}
     required
   >
-    <option value="">Select Unit Name</option>
-    <option value="Isuzu MU-X">Isuzu MU-X</option>
-    <option value="Isuzu D-MAX">Isuzu D-MAX</option>
-    <option value="Isuzu Traviz">Isuzu Traviz</option>
+    <option value="">Select from Inventory</option>
+    {inventory.map((unit) => (
+      <option key={unit._id} value={unit.unitName}>
+        {unit.unitName} ({unit.unitId})
+      </option>
+    ))}
   </select>
 </div>
+
 
           <div className="modal-form-group">
             <label>Status</label>
@@ -1089,7 +1101,20 @@ const fetchUsers = () => {
 </td>
 {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
         <td>
-          <button className="action-btn" onClick={() => setEditRequest(req)}>Edit</button> 
+         <button
+  className="action-btn"
+  onClick={() =>
+    setEditRequest({
+      ...req,
+      dateCreated: req.dateCreated
+        ? new Date(req.dateCreated).toISOString().split("T")[0]
+        : new Date(req.createdAt).toISOString().split("T")[0]
+    })
+  }
+>
+  Edit
+</button>
+ 
           {' '}
           <button className="action-btn" onClick={() => handleDeleteRequest(req._id)}>Delete</button>
         </td>

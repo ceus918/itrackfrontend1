@@ -10,16 +10,19 @@ body {
   }
   
   .sidebar {
-    width: 240px;
-    background: #e50914;
-    color: white;
-    padding: 20px;
-    transition: width 0.2s ease;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
+  width: 240px;
+  background: #e50914;
+  color: white;
+  padding: 20px;
+  transition: width 0.2s ease;
+  overflow-y: auto;        /* Enable vertical scrolling */
+  overflow-x: hidden;      /* Hide horizontal scroll */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100vh;           /* Ensure full screen height */
+}
+
   
   .sidebar ul {
     margin-left: 35px;

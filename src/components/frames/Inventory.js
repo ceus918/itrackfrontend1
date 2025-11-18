@@ -21,6 +21,8 @@ const Inventory = () => {
 
 
   const [editStock, setEditStock] = useState(null);
+
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [changeLogs, setChangeLogs] = useState([]);
@@ -66,6 +68,7 @@ const validateConductionNumber = (value) => {
 
   useEffect(() => {
     fetchStock();
+    fetchSalesAgent();
     getCurrentUser().then(user => {
       setUserRole(user ? user.role : null);
       setCurrentUser(user);
@@ -127,15 +130,14 @@ const validateConductionNumber = (value) => {
 
 
   const handleUpdateStock = (id) => {
-  const { unitName, unitId, bodyColor, variation } = editStock;
-
+  const { unitName, unitId, bodyColor, variation, assignedTo } = editStock;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
     alert(conductionError);
     return;
   }
-  if (!unitName || !unitId || !bodyColor || !variation || !editStock.status) {
+  if (!unitName || !unitId || !bodyColor || !variation || !editStock.status || !assignedTo) {
   alert('All fields are required!');
   return;
 }
@@ -529,6 +531,17 @@ const fetchUsers = () => {
 };
 
 
+const [agents, setAgents] = useState([]);
+
+const fetchSalesAgent = () => {
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+    .then(res => {
+      const driverList = res.data.filter(u => u.role?.toLowerCase() === "sales agent");
+      setAgents(driverList);
+    })
+    .catch(err => console.error(err));
+};
+
 
   return (
     <div className="app">
@@ -915,6 +928,7 @@ const fetchUsers = () => {
               <img src={searchIcon} alt="Search" className="search-icon" />
             </button>
           </div>
+          
           {!['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
   <button className="create-btn" onClick={() => setIsCreateModalOpen(true)} style={{ marginLeft:4}} >
     <img src={addIcon} alt="Add" className="add-icon" />
@@ -1160,6 +1174,28 @@ const fetchUsers = () => {
     <option value="Available">Available</option>
   </select>
 </div>
+
+{/* ------------------ ASSIGN TO ------------------ */}
+<div className="modal-form-group">
+  <label>
+    Assign To <span style={{ color: "red" }}>*</span>
+  </label>
+  <select
+    value={editStock.assignedTo || ""}
+    onChange={(e) =>
+      setEditStock({ ...editStock, assignedTo: e.target.value })
+    }
+    required
+  >
+    <option value="">Select Sales Agent</option>
+    {agents.map((agent) => (
+      <option key={agent._id} value={agent.name}>
+        {agent.name}
+      </option>
+    ))}
+  </select>
+</div>
+
 
 
         </div>

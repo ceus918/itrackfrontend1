@@ -668,8 +668,6 @@ const handleChangePassword = () => {
 )}
 
 
-
-
         <div className="dashboard-content">
           <div className="cards">
             {cards.map(({ title, value, dark, route }) => (
@@ -697,16 +695,17 @@ const handleChangePassword = () => {
     <h4 className="section-title">Stocks Overview</h4>
     {stockData.length > 0 ? (
   <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      flexWrap: "wrap",
-      gap: "20px",
-    }}
-  >
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
+    alignItems: "center"
+  }}
+>
+
     {/* 🥧 Pie Chart (Left) */}
-    <div style={{ flex: "1 1 250px", minWidth: "250px", height: "250px" }}>
+    <div style={{ width: "100%", height: "260px" }}>
+
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -731,43 +730,45 @@ const handleChangePassword = () => {
     </div>
 
     {/* 📊 Legend (Right) */}
+   <div
+  style={{
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  }}
+>
+
+      {stockData.map((item, index) => (
+  <div
+    key={index}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      marginBottom: "6px",
+      fontSize: "14px",
+                  // ⭐ NEW → makes spacing consistent and tighter
+    }}
+  >
     <div
       style={{
-        flex: "1 1 200px",
-        minWidth: "200px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        height: "100%",
+        width: "12px",
+        height: "12px",
+        borderRadius: "50%",
+        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
       }}
-    >
-      {stockData.map((item, index) => (
-        <div
-          key={index}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "8px",
-            fontSize: "14px",
-          }}
-        >
-          <div
-            style={{
-              width: "12px",
-              height: "12px",
-              borderRadius: "50%",
-              backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-              marginRight: "10px",
-            }}
-          ></div>
-          <span style={{ flex: 1, color: "#374151", fontWeight: "500" }}>
-            {item.name}
-          </span>
-          <span style={{ color: "#111827", fontWeight: "600" }}>
-            {item.value}
-          </span>
-        </div>
-      ))}
+    ></div>
+
+    <span style={{ flex: 1, color: "#374151", fontWeight: "500" }}>
+      {item.name}
+    </span>
+
+    <span style={{ color: "#111827", fontWeight: "600",marginRight: "100px" }}>
+      {item.value}
+    </span>
+  </div>
+))}
+
     </div>
   </div>
 ) : (

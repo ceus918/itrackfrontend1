@@ -30,9 +30,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
   { name: "Dashboard", icon: dashboardIcon, path: "/dashboard" },
   { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
-  { name: "Vehicle Preperation and Release", icon: requestIcon, path: "/servicerequest" },
+  { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
+  { name: "Release", icon: requestIcon, path: "/servicerequest" },
   // { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
-  { name: "Unit Allocation", icon: driverIcon, path: "/unitallocation" },
+  
   { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
   { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
   { name: "User Management", icon: usersIcon, path: "/users" },
@@ -45,7 +46,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         'Dashboard',
         'Reports',
         'Vehicle Stocks',
-        'Vehicle Preperation and Release',
+        'Vehicle Preperation',
+        'Release',
+        'Driver Allocation',
         'Vehicle Shipment',
         'Test Drive',
       ].includes(item.name))

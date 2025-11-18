@@ -16,6 +16,7 @@ const DriverAllocation = () => {
   const [allocation, setAllocations] = useState([]);
   const [isViewShipmentOpen, setIsViewShipmentOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  
   const [newAllocation, setNewAllocation] = useState({
     
     unitName: '',
@@ -101,40 +102,70 @@ const fetchInventory = () => {
       .catch((err) => console.log(err));
   };
 
-  const handleCreate = () => {
-  const { unitName, unitId, bodyColor, variation, assignedDriver } = newAllocation;
 
+  // Units that are NOT currently allocated
+const availableUnits = inventory.filter(
+  (unit) => !allocation.some((a) => a.unitId === unit.unitId)
+);
+
+
+
+  const handleCreate = () => {
+  const { unitName, unitId, bodyColor, variation, assignedDriver, date } = newAllocation;
+
+  // Validate conduction number
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
     alert(conductionError);
     return;
   }
 
-  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
+  // Required fields
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver || !date) {
     alert("All fields are required.");
     return;
   }
 
-  axios.post("https://itrack-web-backend.onrender.com/api/createAllocation", newAllocation, { withCredentials: true })
-    .then(() => {
-      fetchAllocations();
-      setNewAllocation({
-        unitName: '',
-        unitId: '',
-        bodyColor: '',
-        variation: '',
-        assignedDriver: '',
-        status: 'Pending',
-        date: ''
-      });
-      setIsCreateModalOpen(false);
-    })
-    .catch((err) => console.log(err));
+  // ✅ PREVENT DUPLICATE ALLOCATION
+  const isAlreadyAllocated = allocation.some(
+    (allocation) => allocation.unitId === unitId
+  );
+
+  if (isAlreadyAllocated) {
+    alert("This unit is already allocated to a driver.");
+    return;
+  }
+
+  // Submit
+  axios.post(
+    "https://itrack-web-backend.onrender.com/api/createAllocation",
+    newAllocation,
+    { withCredentials: true }
+  )
+  .then(() => {
+    fetchAllocations();   // Refresh list
+        // (optional) only if you have fetchUnits function
+
+    // Reset form
+    setNewAllocation({
+      unitName: "",
+      unitId: "",
+      bodyColor: "",
+      variation: "",
+      assignedDriver: "",
+      status: "Pending",
+      date: "",
+    });
+
+    setIsCreateModalOpen(false);
+  })
+  .catch((err) => console.log(err));
 };
 
 
+
   const handleUpdate = (id) => {
-  const { unitName, unitId, bodyColor, variation, assignedDriver } = editAllocation;
+  const { unitName, unitId, bodyColor, variation, assignedDriver,date } = editAllocation;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -142,7 +173,7 @@ const fetchInventory = () => {
     return;
   }
 
-  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver||!date) {
     alert("All fields are required.");
     return;
   }
@@ -323,89 +354,7 @@ useEffect(() => {
   return () => document.removeEventListener("click", handleClickOutside);
 }, []);
 
-const unitOptions = {
-  "Isuzu D-Max": [
-    "Cab and Chassis",
-    "CC Utility Van Dual AC",
-    "4x2 LT MT",
-    "4x4 LT MT",
-    "4x2 LS-A MT",
-    "4x2 LS-A MT Plus",
-    "4x2 LS-A AT",
-    "4x2 LS-A AT Plus",
-    "4x4 LS-A MT",
-    "4x4 LS-A MT Plus",
-    "4x2 LS-E AT",
-    "4x4 LS-E AT",
-    "4x4 Single Cab MT"
-  ],
-  "Isuzu MU-X": [
-    "1.9L MU-X 4x2 LS AT",
-    "3.0L MU-X 4x2 LS-A AT",
-    "3.0L MU-X 4x2 LS-E AT",
-    "3.0L MU-X 4x4 LS-E AT"
-  ],
-  "Isuzu Traviz": [
-    "SWB 2.5L 4W 9FT Cab & Chassis",
-    "SWB 2.5L 4W 9FT Utility Van Dual AC",
-    "LWB 2.5L 4W 10FT Cab & Chassis",
-    "LWB 2.5L 4W 10FT Utility Van Dual AC",
-    "LWB 2.5L 4W 10FT Aluminum Van",
-    "LWB 2.5L 4W 10FT Aluminum Van w/ Single AC",
-    "LWB 2.5L 4W 10FT Dropside Body",
-    "LWB 2.5L 4W 10FT Dropside Body w/ Single AC"
-  ],
-  "Isuzu QLR Series": [
-    "QLR77 E Tilt 3.0L 4W 10ft 60A Cab & Chassis",
-    "QLR77 E Tilt Utility Van w/o AC",
-    "QLR77 E Non-Tilt 3.0L 4W 10ft 60A Cab & Chassis",
-    "QLR77 E Non-Tilt Utility Van w/o AC",
-    "QLR77 E Non-Tilt Utility Van Dual AC"
-  ],
-  "Isuzu NLR Series": [
-    "NLR77 H Tilt 3.0L 4W 14ft 60A",
-    "NLR77 H Jeepney Chassis (135A)",
-    "NLR85 Tilt 3.0L 4W 10ft 90A",
-    "NLR85E Smoother"
-  ],
-  "Isuzu NMR Series": [
-    "NMR85H Smoother",
-    "NMR85 H Tilt 3.0L 6W 14ft 80A Non-AC"
-  ],
-  "Isuzu NPR Series": [
-    "NPR85 Tilt 3.0L 6W 16ft 90A",
-    "NPR85 Cabless for Armored"
-  ],
-  "Isuzu NPS Series": [
-    "NPS75 H 3.0L 6W 16ft 90A"
-  ],
-  "Isuzu NQR Series": [
-    "NQR75L Smoother",
-    "NQR75 Tilt 5.2L 6W 18ft 90A"
-  ],
-  "Isuzu FRR Series": [
-    "FRR90M 6W 20ft 5.2L",
-    "FRR90M Smoother"
-  ],
-  "Isuzu FTR Series": [
-    "FTR90M 6W 19ft 5.2L"
-  ],
-  "Isuzu FVR Series": [
-    "FVR34Q Smoother",
-    "FVR 34Q 6W 24ft 7.8L w/ ABS"
-  ],
-  "Isuzu FTS Series": [
-    "FTS34 J",
-    "FTS34L"
-  ],
-  "Isuzu FVM Series": [
-    "FVM34T 10W 26ft 7.8L w/ ABS",
-    "FVM34W 10W 32ft 7.8L w/ ABS"
-  ],
-  "Isuzu FXM Series": ["FXM60W"],
-  "Isuzu GXZ Series": ["GXZ60N"],
-  "Isuzu EXR Series": ["EXR77H 380PS 6W Tractor Head"]
-};
+
 
 const UnitDropdown = () => {
   const [selectedUnit, setSelectedUnit] = useState("");
@@ -481,6 +430,24 @@ const fetchUsers = () => {
       alert("Error updating password. Please try again.");
     });
 };
+
+
+// Only show allocations that the current user is allowed to see
+const visibleAllocations = currentAllocations.filter(item => {
+  if (!fullUser) return false;
+
+  if (fullUser.role === "Admin") {
+    return true; // Admin sees all
+  }
+
+  if (fullUser.role === "Sales Agent") {
+    // Find the inventory item for this allocation
+    const inventoryItem = inventory.find(u => u.unitId === item.unitId);
+    return inventoryItem?.assignedTo === fullUser.name; // Only show if assigned to this user
+  }
+
+  return false; // Other roles see nothing
+});
 
 
 
@@ -798,10 +765,12 @@ const fetchUsers = () => {
                    <img src={searchIcon} alt="Search" className="search-icon" />
                  </button>
                </div>
-               <button className="create-btn" onClick={() => setIsCreateModalOpen(true)}>
-                 <img src={addIcon} alt="Add" className="add-icon" />
-                 Allocate Driver
-               </button>
+               {fullUser?.role === "Admin" && (
+  <button className="create-btn" onClick={() => setIsCreateModalOpen(true)}>
+    <img src={addIcon} alt="Add" className="add-icon" />
+    Allocate Driver
+  </button>
+)}
              </div>
 
 
@@ -820,8 +789,10 @@ const fetchUsers = () => {
                   <th>Action</th>
                 </tr>
               </thead>
+
                <tbody>
-    {currentAllocations.map((item) => (
+    {visibleAllocations.map((item) => (
+
       <tr 
         key={item._id} 
         onClick={() => {
@@ -927,14 +898,17 @@ const fetchUsers = () => {
           {/* UNIT NAME */}
 <div className="modal-form-group">
   <label>Unit Name</label>
+
   <select
-  value={newAllocation.unitId}
+  value={newAllocation.selectedUnitId || ""}
+  disabled={availableUnits.length === 0}
   onChange={(e) => {
-    const selected = inventory.find(i => i._id === e.target.value);
+    const selected = availableUnits.find(i => i._id === e.target.value);
 
     if (selected) {
       setNewAllocation({
         ...newAllocation,
+        selectedUnitId: selected._id,   // <-- FIX: store the selected _id
         unitName: selected.unitName,
         unitId: selected.unitId,
         bodyColor: selected.bodyColor,
@@ -943,35 +917,20 @@ const fetchUsers = () => {
     }
   }}
 >
-  <option value="">Select Unit</option>
-  {inventory.map(item => (
-    <option key={item._id} value={item._id}>
-      {item.unitName} — {item.bodyColor} — {item.unitId}
+
+    <option value="">
+      {availableUnits.length === 0
+        ? "No units available"
+        : "Select Unit"}
     </option>
-  ))}
-</select>
 
+    {availableUnits.map(item => (
+      <option key={item._id} value={item._id}>
+        {item.unitName} — {item.bodyColor} — {item.unitId}
+      </option>
+    ))}
+  </select>
 </div>
-
-{/* CONDUCTION NUMBER — READ ONLY */}
-<div className="modal-form-group">
-  <label>Conduction Number</label>
-  <input type="text" value={newAllocation.unitId} readOnly />
-</div>
-
-{/* BODY COLOR — READ ONLY */}
-<div className="modal-form-group">
-  <label>Body Color</label>
-  <input type="text" value={newAllocation.bodyColor} readOnly />
-</div>
-
-{/* VARIATION — READ ONLY */}
-<div className="modal-form-group">
-  <label>Variation</label>
-  <input type="text" value={newAllocation.variation} readOnly />
-</div>
-
-
 
          
 
@@ -1001,10 +960,7 @@ const fetchUsers = () => {
               }
             >
               <option value="Pending">Pending</option>
-              <option value="In Transit">In Transit</option>
-              <option value="Available">Available</option>
-              <option value="Preparing">Preparing</option>
-              <option value="Completed">Released</option>
+              
             </select>
           </div>
 
@@ -1120,11 +1076,29 @@ const fetchUsers = () => {
             >
               <option value="Pending">Pending</option>
               <option value="In Transit">In Transit</option>
-              <option value="Available">Available</option>
-              <option value="Preparing">Preparing</option>
-              <option value="Completed">Released</option>
+            
+              <option value="Completed">Completed</option>
             </select>
           </div>
+
+          {/* ------------------ DATE ------------------ */}
+<div className="modal-form-group force-width">
+  <label>Date</label>
+  <input
+    className="modal-form-group force-width2"
+    type="date"
+    value={
+      editAllocation.date
+        ? editAllocation.date
+        : "" // fallback if empty
+    }
+    onChange={(e) =>
+      setEditAllocation({ ...editAllocation, date: e.target.value })
+    }
+  />
+</div>
+
+
         </div>
 
         <div className="modal-buttons">

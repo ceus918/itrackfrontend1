@@ -31,7 +31,7 @@ const AppController = () =>{
                 <Route path="/" element={ <Login/> }/>
                 <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}>  <Reports/> </ProtectedRoute>}/>
                 <Route path="/inventory" element={ <ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}>  <Inventory/> </ProtectedRoute>}/>
-                <Route path="/driverallocation" element={ <ProtectedRoute allowedRoles={["Admin"]}>  <DriverAllocation/> </ProtectedRoute>}/>
+                <Route path="/driverallocation" element={ <ProtectedRoute allowedRoles={["Admin","Sales Agent"]}>  <DriverAllocation/> </ProtectedRoute>}/>
                 <Route path="/servicerequest" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <ServiceRequest/> </ProtectedRoute>}/>
                 <Route path="/testdrive" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <TestDrive/> </ProtectedRoute>}/>
                 <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Admin","Sales Agent","Manager","Supervisor"]}> <Dashboard/> </ProtectedRoute> } />
