@@ -18,16 +18,14 @@ const DriverAllocation = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   
   const [newAllocation, setNewAllocation] = useState({
-    
-    unitName: '',
-    unitId: '',
-    bodyColor: '',
-    variation: '',
-    assignedDriver: '',
-    status: 'Pending',
-    date: '' // Added date field
+  unitName: '',
+  unitId: '',
+  bodyColor: '',
+  variation: '',
+  assignedDriver: '',
+  status: 'Pending'
+});
 
-  });
   const [editAllocation, setEditAllocation] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -111,24 +109,21 @@ const availableUnits = inventory.filter(
 
 
   const handleCreate = () => {
-  const { unitName, unitId, bodyColor, variation, assignedDriver, date } = newAllocation;
+  const { unitName, unitId, bodyColor, variation, assignedDriver } = newAllocation;
 
-  // Validate conduction number
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
     alert(conductionError);
     return;
   }
 
-  // Required fields
-  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver || !date) {
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
     alert("All fields are required.");
     return;
   }
 
-  // ✅ PREVENT DUPLICATE ALLOCATION
   const isAlreadyAllocated = allocation.some(
-    (allocation) => allocation.unitId === unitId
+    (a) => a.unitId === unitId
   );
 
   if (isAlreadyAllocated) {
@@ -136,25 +131,25 @@ const availableUnits = inventory.filter(
     return;
   }
 
-  // Submit
+  const today = new Date().toISOString().split("T")[0];
+
   axios.post(
     "https://itrack-web-backend.onrender.com/api/createAllocation",
-    newAllocation,
+    {
+      ...newAllocation,
+      date: today   // <-- AUTO DATE HERE
+    },
     { withCredentials: true }
   )
   .then(() => {
-    fetchAllocations();   // Refresh list
-        // (optional) only if you have fetchUnits function
-
-    // Reset form
+    fetchAllocations();
     setNewAllocation({
       unitName: "",
       unitId: "",
       bodyColor: "",
       variation: "",
       assignedDriver: "",
-      status: "Pending",
-      date: "",
+      status: "Pending"
     });
 
     setIsCreateModalOpen(false);
@@ -164,8 +159,9 @@ const availableUnits = inventory.filter(
 
 
 
+
   const handleUpdate = (id) => {
-  const { unitName, unitId, bodyColor, variation, assignedDriver,date } = editAllocation;
+  const { unitName, unitId, bodyColor, variation, assignedDriver } = editAllocation;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -173,18 +169,23 @@ const availableUnits = inventory.filter(
     return;
   }
 
-  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver||!date) {
+  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
     alert("All fields are required.");
     return;
   }
 
-  axios.put(`https://itrack-web-backend.onrender.com/api/updateAllocation/${id}`, editAllocation, { withCredentials: true })
-    .then(() => {
-      fetchAllocations();
-      setEditAllocation(null);
-    })
-    .catch((err) => console.log(err));
+  axios.put(
+    `https://itrack-web-backend.onrender.com/api/updateAllocation/${id}`,
+    editAllocation,
+    { withCredentials: true }
+  )
+  .then(() => {
+    fetchAllocations();
+    setEditAllocation(null);
+  })
+  .catch((err) => console.log(err));
 };
+
 
 
   const handleDelete = (id) => {
@@ -355,11 +356,6 @@ useEffect(() => {
 }, []);
 
 
-
-const UnitDropdown = () => {
-  const [selectedUnit, setSelectedUnit] = useState("");
-  const [selectedVariation, setSelectedVariation] = useState("");
-}
 
 
 const fetchUsers = () => {
@@ -894,52 +890,56 @@ const visibleAllocations = currentAllocations.filter(item => {
 
       <div className="modal-content">
         <div className="modal-form">
-          {/* ------------------ UNIT NAME ------------------ */}
+
           {/* UNIT NAME */}
-<div className="modal-form-group">
-  <label>Unit Name</label>
+          <div className="modal-form-group">
+            <label>Unit Name</label>
 
-  <select
-  value={newAllocation.selectedUnitId || ""}
-  disabled={availableUnits.length === 0}
-  onChange={(e) => {
-    const selected = availableUnits.find(i => i._id === e.target.value);
+            <select
+              value={newAllocation.selectedUnitId || ""}
+              disabled={availableUnits.length === 0}
+              onChange={(e) => {
+                const selected = availableUnits.find(i => i._id === e.target.value);
 
-    if (selected) {
-      setNewAllocation({
-        ...newAllocation,
-        selectedUnitId: selected._id,   // <-- FIX: store the selected _id
-        unitName: selected.unitName,
-        unitId: selected.unitId,
-        bodyColor: selected.bodyColor,
-        variation: selected.variation
-      });
-    }
-  }}
->
+                if (selected) {
+                  setNewAllocation({
+                    ...newAllocation,
+                    selectedUnitId: selected._id,
+                    unitName: selected.unitName,
+                    unitId: selected.unitId,
+                    bodyColor: selected.bodyColor,
+                    variation: selected.variation,
+                    status: "Pending" // <-- default
+                  });
+                }
+              }}
+            >
 
-    <option value="">
-      {availableUnits.length === 0
-        ? "No units available"
-        : "Select Unit"}
-    </option>
+              <option value="">
+                {availableUnits.length === 0
+                  ? "No units available"
+                  : "Select Unit"}
+              </option>
 
-    {availableUnits.map(item => (
-      <option key={item._id} value={item._id}>
-        {item.unitName} — {item.bodyColor} — {item.unitId}
-      </option>
-    ))}
-  </select>
-</div>
+              {availableUnits.map(item => (
+                <option key={item._id} value={item._id}>
+                  {item.unitName} — {item.bodyColor} — {item.unitId}
+                </option>
+              ))}
+            </select>
+          </div>
 
-         
-
+          {/* ASSIGNED DRIVER */}
           <div className="modal-form-group">
             <label>Assigned Driver</label>
             <select
               value={newAllocation.assignedDriver}
               onChange={(e) =>
-                setNewAllocation({ ...newAllocation, assignedDriver: e.target.value })
+                setNewAllocation({
+                  ...newAllocation,
+                  assignedDriver: e.target.value,
+                  status: "Pending" // ensure always pending
+                })
               }
             >
               <option value="">Select Driver</option>
@@ -951,29 +951,6 @@ const visibleAllocations = currentAllocations.filter(item => {
             </select>
           </div>
 
-          <div className="modal-form-group">
-            <label>Status</label>
-            <select
-              value={newAllocation.status}
-              onChange={(e) =>
-                setNewAllocation({ ...newAllocation, status: e.target.value })
-              }
-            >
-              <option value="Pending">Pending</option>
-              
-            </select>
-          </div>
-
-          <div className="modal-form-group force-width">
-            <label>Date</label>
-            <input className="modal-form-group force-width2"
-              type="date"
-              value={newAllocation.date}
-              onChange={(e) =>
-                setNewAllocation({ ...newAllocation, date: e.target.value })
-              }
-            />
-          </div>
         </div>
 
         <div className="modal-buttons">
@@ -991,6 +968,7 @@ const visibleAllocations = currentAllocations.filter(item => {
     </div>
   </div>
 )}
+
 {editAllocation && (
   <div className="modal-overlay">
     <div className="modal">
@@ -999,73 +977,57 @@ const visibleAllocations = currentAllocations.filter(item => {
       <div className="modal-content">
         <div className="modal-form">
 
-          {/* ------------------ UNIT NAME (MANUAL INPUT) ------------------ */}
+          {/* UNIT NAME (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Unit Name</label>
             <input
               type="text"
               value={editAllocation.unitName}
-              onChange={(e) =>
-                setEditAllocation({ ...editAllocation, unitName: e.target.value })
-              }
+              disabled
             />
           </div>
 
-          {/* ------------------ CONDUCTION NUMBER (MANUAL) ------------------ */}
+          {/* CONDUCTION NUMBER (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Conduction Number</label>
             <input
               type="text"
               value={editAllocation.unitId}
-              onChange={(e) =>
-                setEditAllocation({ ...editAllocation, unitId: e.target.value })
-              }
+              disabled
             />
           </div>
 
-          {/* ------------------ BODY COLOR (MANUAL INPUT) ------------------ */}
+          {/* BODY COLOR (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Body Color</label>
             <input
               type="text"
               value={editAllocation.bodyColor}
-              onChange={(e) =>
-                setEditAllocation({ ...editAllocation, bodyColor: e.target.value })
-              }
+              disabled
             />
           </div>
 
-          {/* ------------------ VARIATION (MANUAL INPUT) ------------------ */}
+          {/* VARIATION (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Variation</label>
             <input
               type="text"
               value={editAllocation.variation}
-              onChange={(e) =>
-                setEditAllocation({ ...editAllocation, variation: e.target.value })
-              }
+              disabled
             />
           </div>
 
-          {/* ------------------ ASSIGNED DRIVER ------------------ */}
+          {/* ASSIGNED DRIVER (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Assigned Driver</label>
-            <select
+            <input
+              type="text"
               value={editAllocation.assignedDriver}
-              onChange={(e) =>
-                setEditAllocation({ ...editAllocation, assignedDriver: e.target.value })
-              }
-            >
-              <option value="">Select Driver</option>
-              {drivers.map((driver) => (
-                <option key={driver._id} value={driver.name}>
-                  {driver.name}
-                </option>
-              ))}
-            </select>
+              disabled
+            />
           </div>
 
-          {/* ------------------ STATUS ------------------ */}
+          {/* STATUS — ONLY EDITABLE FIELD */}
           <div className="modal-form-group">
             <label>Status</label>
             <select
@@ -1076,28 +1038,9 @@ const visibleAllocations = currentAllocations.filter(item => {
             >
               <option value="Pending">Pending</option>
               <option value="In Transit">In Transit</option>
-            
               <option value="Completed">Completed</option>
             </select>
           </div>
-
-          {/* ------------------ DATE ------------------ */}
-<div className="modal-form-group force-width">
-  <label>Date</label>
-  <input
-    className="modal-form-group force-width2"
-    type="date"
-    value={
-      editAllocation.date
-        ? editAllocation.date
-        : "" // fallback if empty
-    }
-    onChange={(e) =>
-      setEditAllocation({ ...editAllocation, date: e.target.value })
-    }
-  />
-</div>
-
 
         </div>
 
@@ -1116,6 +1059,7 @@ const visibleAllocations = currentAllocations.filter(item => {
     </div>
   </div>
 )}
+
 
 
 
