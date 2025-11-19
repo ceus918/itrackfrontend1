@@ -47,23 +47,41 @@ const Release = () => {
     fetchCompletedRequests();
   }, []);
 
-  // ============================
-  // MARK AS RELEASED
-  // ============================
-  const handleMarkReleased = async (id) => {
-    try {
-      await axios.put(
-        `https://itrack-web-backend.onrender.com/api/markReleased/${id}`,
-        {},
-        { withCredentials: true }
-      );
+  
+  
+const handleMarkReleased = (id) => {
+  if (!id) {
+    alert("Invalid request ID.");
+    return;
+  }
 
-      fetchCompletedRequests();
-      alert("Vehicle successfully marked as released!");
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  // Ask for confirmation
+  const confirmed = window.confirm(
+    "Are you sure you want to mark this vehicle as released?"
+  );
+
+  if (!confirmed) return; // User clicked Cancel
+
+  // Prepare the payload
+  const payload = { releaseStatus: "Released" };
+
+  axios.put(
+    `https://itrack-web-backend.onrender.com/api/markAsReleased/${id}`,
+    payload,
+    { withCredentials: true }
+  )
+  .then(() => {
+    fetchCompletedRequests(); // refresh table
+    alert("Vehicle successfully marked as released!");
+  })
+  .catch((err) => {
+    console.log("Failed to mark vehicle as released.", err.response?.data || err);
+  });
+};
+
+
+
+
 
   // ============================
   // FAKE: Fetch user for header
@@ -236,17 +254,18 @@ const Release = () => {
 
                     <td>
                       <button
-                        className="action-btn"
-                        style={{
-                          background: "#e7212bff",
-                          color: "#fff",
-                          padding: "5px 10px",
-                          borderRadius: "6px",
-                        }}
-                        
-                      >
-                        Mark as Released
-                      </button>
+  className="action-btn"
+  style={{
+    background: "#e7212bff",
+    color: "#fff",
+    padding: "5px 10px",
+    borderRadius: "6px",
+  }}
+  onClick={() => handleMarkReleased(item._id)}
+>
+  Mark as Released
+</button>
+
                     </td>
                   </tr>
                 ))}
