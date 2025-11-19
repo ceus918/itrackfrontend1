@@ -1,10 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState, useRef } from "react";
+import Sidebar from "./Sidebar";
+import axios from "axios";
+import '../css/ServiceRequest.css';
+import logo from '../icons/I-track logo.png'; 
+import addIcon from '../icons/add.png'; 
+import searchIcon from '../icons/search.png';
+import downloadIcon from '../icons/download2.png';
+import ViewShipment from "./ViewShipment"; 
+import { getCurrentUser } from '../getCurrentUser';
 
-const AuditTrailTab = () => {
+const AuditTrail = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
- 
+   const [auditLogs, setAuditLogs] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [profileData, setProfileData] = useState({ name: '', phoneno: '', picture: '' });
+    const [profileImage, setProfileImage] = useState('');
+    const [fullUser, setFullUser] = useState(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const fileInputRef = useRef(null);
+    
 
   useEffect(() => {
   axios
@@ -48,13 +65,35 @@ const AuditTrailTab = () => {
   return summary;
 };
 
-
   return (
-    <div style={{ padding: 5 }}>
-      <h3>Audit Trail</h3>
-      <table style={{ width: '100%', borderCollapse: 'collapse'}}>
+    <div className="app">
+      <Sidebar sidebarOpen={true} setSidebarOpen={() => {}} />
+      <div className="main">
+        {/* Header */}
+        <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button className="toggle-btn" onClick={() => {}}>☰</button>
+            <h3 className="header-title1" style={{ marginLeft: 10 }}>Audit Trail</h3>
+          </div>
 
-        <thead>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0px' }}>
+            {fullUser && fullUser.name && (
+              <div className="loggedinuser" onClick={() => setIsProfileModalOpen(true)} style={{ fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>
+                Welcome, {fullUser.name}
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Audit Table */}
+        <div className="content">
+        
+
+          <div className="table-container">
+        <div style={{ padding: 20 }}>
+          <h3>Audit Logs</h3>
+          <table style={{ width: "100%", }}>
+             <thead>
           <tr>
             <th>Timestamp</th>
             <th>Action</th>
@@ -63,7 +102,7 @@ const AuditTrailTab = () => {
             <th>Details</th>
           </tr>
         </thead>
-        <tbody >
+            <tbody >
           {logs.map((log, idx) => {
             const changes = getChanges(log.details?.before, log.details?.after);
 
@@ -145,9 +184,13 @@ const AuditTrailTab = () => {
             );
           })}
         </tbody>
-      </table>
+          </table>
+        </div>
+      </div>
+      </div>
+      </div>
     </div>
   );
 };
 
-export default AuditTrailTab;
+export default AuditTrail;

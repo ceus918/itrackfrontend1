@@ -723,7 +723,7 @@ const fetchUsers = () => {
          <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
   <div style={{ display: 'flex', alignItems: 'center' }}>
     <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
-    <h3 className="header-title1" style={{ marginLeft: 10 }}>Vehicle Preparation and Release</h3>
+    <h3 className="header-title1" style={{ marginLeft: 10 }}>Vehicle Preparation</h3>
   </div>
 
   {/* Profile section on the right */}
