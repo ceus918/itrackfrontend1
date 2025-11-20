@@ -949,9 +949,9 @@ useEffect(() => {
                   </div>
                 )}
               </div>
-              <button onClick={() => setIsAuditModalOpen(true)} style={{ color:'black',fontSize:'10px', margin: '16px 0', padding: '6px 12px', background: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+              {/* <button onClick={() => setIsAuditModalOpen(true)} style={{ color:'black',fontSize:'10px', margin: '16px 0', padding: '6px 12px', background: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
                 Audit Trail
-              </button>
+              </button> */}
               {isAuditModalOpen && (
                 <div style={{
                   position: 'fixed',
