@@ -17,7 +17,7 @@ const ServiceRequest = () => {
   const [requests, setRequests] = useState([]);
   const [newRequest, setNewRequest] = useState({
     dateCreated: '',
-    vehicleRegNo: '',
+    unitId: '',
     service: [],
     status: 'Pending'
   });
@@ -78,7 +78,7 @@ const ServiceRequest = () => {
     const searchValue = searchTerm.toLowerCase();
     return (
       req.dateCreated.toLowerCase().includes(searchValue) ||
-      req.vehicleRegNo.toLowerCase().includes(searchValue) ||
+      req.unitId.toLowerCase().includes(searchValue) ||
       req.service.join(', ').toLowerCase().includes(searchValue) ||
       req.status.toLowerCase().includes(searchValue)
     );
@@ -162,21 +162,21 @@ const ServiceRequest = () => {
   };
 
   const handleCreateRequest = () => {
-  const { dateCreated, vehicleRegNo, service, unitName } = newRequest;
+  const { dateCreated, unitId, service, unitName } = newRequest;
 
-  const conductionError = validateConductionNumber(vehicleRegNo);
+  const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
     alert(conductionError);
     return;
   }
 
-  if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
+  if (!dateCreated || !unitId || service.length === 0 || !unitName) {
     alert("All fields are required.");
     return;
   }
 
   // Extra validation: prevent duplicate service request for same unit
-  const existingUnit = inventory.find(u => u.unitId === vehicleRegNo);
+  const existingUnit = inventory.find(u => u.unitId === unitId);
   if (!useExistingUnit && existingUnit) {
     const proceed = window.confirm(
       `This conduction number already exists in inventory as "${existingUnit.unitName}". Do you still want to proceed manually?`
@@ -189,7 +189,7 @@ const ServiceRequest = () => {
       fetchRequests();
       setNewRequest({
         dateCreated: '',
-        vehicleRegNo: '',
+        unitId: '',
         unitName: '',
         service: [],
         status: 'Pending'
@@ -203,15 +203,15 @@ const ServiceRequest = () => {
 
   
   const handleUpdateRequest = (id) => {
-  const { dateCreated, vehicleRegNo, service, unitName } = editRequest;
+  const { dateCreated, unitId, service, unitName } = editRequest;
 
-  const conductionError = validateConductionNumber(vehicleRegNo);
+  const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
     alert(conductionError);
     return;
   }
 
-  if (!dateCreated || !vehicleRegNo || service.length === 0 || !unitName) {
+  if (!dateCreated || !unitId || service.length === 0 || !unitName) {
     alert("All fields are required.");
     return;
   }
@@ -231,7 +231,7 @@ const ServiceRequest = () => {
 
   // ✅ Step 1: Ask for confirmation before deleting
   const confirmDelete = window.confirm(
-    `Are you sure you want to delete the request for "${deletedRequest.unitName}" with Conduction Number "${deletedRequest.vehicleRegNo}"?`
+    `Are you sure you want to delete the request for "${deletedRequest.unitName}" with Conduction Number "${deletedRequest.unitId}"?`
   );
 
   if (!confirmDelete) {
@@ -259,7 +259,7 @@ const ServiceRequest = () => {
 
   const requestData = filteredRequests.map(req => [
     new Date(req.dateCreated).toLocaleDateString('en-CA'),
-    req.vehicleRegNo,
+    req.unitId,
     req.unitName,
     Array.isArray(req.service) ? req.service.join(', ') : req.service,
     req.status,
@@ -432,6 +432,22 @@ const fetchUsers = () => {
     });
 };
 
+const visibleRequests = currentRequests.filter(item => {
+  if (!fullUser) return false;
+
+  if (fullUser.role === "Admin") {
+    return true; // Admin sees all
+  }
+
+  if (fullUser.role === "Sales Agent") {
+    // Find the inventory item for this allocation
+    const inventoryItem = inventory.find(u => u.unitId === item.unitId);
+    return inventoryItem?.assignedTo === fullUser.name; // Only show if assigned to this user
+  }
+
+  return false; // Other roles see nothing
+});
+
 
 
 
@@ -479,22 +495,24 @@ const fetchUsers = () => {
         <div className="modal-form-group">
           <label >Select Existing Unit <span style={{ color: 'red'}}>*</span></label>
           <select style={{ fontSize: '13px' }}
-            value={newRequest.unitName || ''}
+            value={newRequest.unitId || ''}
+
             onChange={(e) => {
-              const selectedUnit = inventory.find(u => u.unitName === e.target.value);
-              setNewRequest({
-                ...newRequest,
-                unitName: selectedUnit?.unitName || '',
-                vehicleRegNo: selectedUnit?.unitId || '',
-              });
-            }}
-            required
-          >
+  const selectedUnit = inventory.find(u => u.unitId === e.target.value);
+
+  setNewRequest({
+    ...newRequest,
+    unitName: selectedUnit?.unitName || '',
+    unitId: selectedUnit?.unitId || '',
+  });
+}}
+  >
             <option  value="">Select from Inventory</option>
             {inventory.map((unit) => (
-              <option key={unit._id} value={unit.unitName}>
-                {unit.unitName} ({unit.unitId})
-              </option>
+             <option key={unit._id} value={unit.unitId}>
+  {unit.unitName} ({unit.unitId})
+</option>
+
             ))}
           </select>
         </div>
@@ -506,9 +524,9 @@ const fetchUsers = () => {
           <label>Conduction Number <span style={{ color: 'red' }}>*</span></label>
           <input
             type="text"
-            value={newRequest.vehicleRegNo}
+            value={newRequest.unitId}
             onChange={(e) =>
-              setNewRequest({ ...newRequest, vehicleRegNo: e.target.value })
+              setNewRequest({ ...newRequest, unitId: e.target.value })
             }
             required
           />
@@ -642,9 +660,9 @@ const fetchUsers = () => {
         <label>Conduction Number <span style={{color: 'red'}}>*</span></label>
             <input
               type="text"
-              value={editRequest.vehicleRegNo}
+              value={editRequest.unitId}
               onChange={(e) =>
-                setEditRequest({ ...editRequest, vehicleRegNo: e.target.value })
+                setEditRequest({ ...editRequest, unitId: e.target.value })
               }
               required
             />
@@ -669,7 +687,7 @@ const fetchUsers = () => {
       setEditRequest({
         ...editRequest,
         unitName: selectedUnit?.unitName || '',
-        vehicleRegNo: selectedUnit?.unitId || editRequest.vehicleRegNo, 
+        unitId: selectedUnit?.unitId || editRequest.unitId, 
       });
     }}
     required
@@ -1058,11 +1076,11 @@ const fetchUsers = () => {
             </thead>
             <tbody>
                 <tr className="header-spacer-row"><td ></td></tr>
-             {currentRequests.map((req) => (
+             {visibleRequests.map((req) => (
 
                 <tr key={req._id}>
                   <td>{new Date(req.dateCreated).toLocaleDateString('en-CA')}</td>
-                  <td>{req.vehicleRegNo}</td>
+                  <td>{req.unitId}</td>
                   <td>{req.unitName}</td>
                    <td>
                       {Array.isArray(req.service)? req.service.length > 2? `${req.service.slice(0, 2).join(', ')}...`: req.service.join(', ')

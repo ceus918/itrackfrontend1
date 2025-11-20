@@ -51,7 +51,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         'Reports',
         'Vehicle Stocks',
         'Vehicle Preperation',
-        'Release',
         'Driver Allocation',
         'Vehicle Shipment',
         'Test Drive',

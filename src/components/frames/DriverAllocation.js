@@ -782,7 +782,10 @@ const visibleAllocations = currentAllocations.filter(item => {
                   <th>Variation</th>
                   <th>Assigned Driver</th>
                   <th>Status</th>
-                  <th>Action</th>
+                  {!["Sales Agent", "Manager", "Supervisor"].includes(fullUser?.role) && (
+  <th>Action</th>
+)}
+
                 </tr>
               </thead>
 
@@ -809,21 +812,25 @@ const visibleAllocations = currentAllocations.filter(item => {
             {item.status}
           </span>
         </td>
-        <td>
-          <button 
-            className="action-btn" 
-            onClick={(e) => { e.stopPropagation(); setEditAllocation(item); }}
-          >
-            Edit
-          </button>
-          {" "}
-          <button 
-            className="action-btn" 
-            onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}
-          >
-            Delete
-          </button>
-        </td>
+       {!["Sales Agent", "Manager", "Supervisor"].includes(fullUser?.role) && (
+  <td>
+    <button 
+      className="action-btn" 
+      onClick={(e) => { e.stopPropagation(); setEditAllocation(item); }}
+    >
+      Edit
+    </button>
+    {" "}
+    <button 
+      className="action-btn" 
+      onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}
+    >
+      Delete
+    </button>
+  </td>
+)}
+
+
       </tr>
     ))}
   </tbody>
