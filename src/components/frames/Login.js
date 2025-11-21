@@ -61,20 +61,19 @@ const Login = () => {
     handleLogin();
   };
 
-  const handleForgotPassword = (e) => {
-    e.preventDefault();
-    setForgotMessage('');
+ const handleForgotPassword = (e) => {
+  e.preventDefault();
+  setForgotMessage('');
 
-    axios.post(`https://itrack-web-backend.onrender.com/api/forgot-password`, { email: forgotEmail })
-
-
-      .then((res) => {
-        setForgotMessage(res.data.message || 'If this email is registered, a reset link has been sent.');
-      })
-      .catch(() => {
-        setForgotMessage('Failed to process request. Please try again.');
-      });
-  };
+  axios.post(`https://itrack-web-backend.onrender.com/api/forgot-password`, { email: forgotEmail })
+    .then((res) => {
+      setForgotMessage(res.data.message || 'If this email is registered, a reset link has been sent.');
+    })
+    .catch((error) => {
+      console.error('Forgot Password Error:', error); // Added detailed console log
+      setForgotMessage('Failed to process request. Please try again.');
+    });
+};
 
   return (
     <div className="login-container">

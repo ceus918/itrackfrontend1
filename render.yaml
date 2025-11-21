@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: itrackfrontend1
+    name: itrackapp
     env: static
     buildCommand: npm run build
     staticPublishPath: build
