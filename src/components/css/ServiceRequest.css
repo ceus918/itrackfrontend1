@@ -24,6 +24,18 @@
   z-index: 1001;
 }
 
+.modal2{
+   background-color: #fff; /* ✅ white modal box */
+  padding: 30px;
+  padding-bottom: 0%;
+  border-radius: 5px;
+  width: 1200px;
+  height: 800px;
+  max-width: 95%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* soft shadow */
+  z-index: 1001;
+}
+
 .modal h3 {
   margin-top: 0;
   margin-bottom: 20px;

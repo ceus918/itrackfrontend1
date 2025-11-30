@@ -10,6 +10,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
 import ViewShipment from "./ViewShipment"; // <-- add this
+import { GoogleMap, Marker, useJsApiLoader, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 
 
 const DriverAllocation = () => {
@@ -18,13 +19,16 @@ const DriverAllocation = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   
   const [newAllocation, setNewAllocation] = useState({
-  unitName: '',
-  unitId: '',
-  bodyColor: '',
-  variation: '',
-  assignedDriver: '',
-  status: 'Pending'
+  unitName: "",
+  unitId: "",
+  bodyColor: "",
+  variation: "",
+  assignedDriver: "",
+  deliveryDestination: { address: "" },
+  pickupLocation: { address: "" },
+  status: "Pending"
 });
+
 
   const [editAllocation, setEditAllocation] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -108,8 +112,16 @@ const availableUnits = inventory.filter(
 
 
 
-  const handleCreate = () => {
-  const { unitName, unitId, bodyColor, variation, assignedDriver } = newAllocation;
+  const handleCreate = () => { 
+  const { 
+    unitName, 
+    unitId, 
+    bodyColor, 
+    variation, 
+    assignedDriver,
+    deliveryDestination,
+    pickupLocation
+  } = newAllocation;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -117,15 +129,20 @@ const availableUnits = inventory.filter(
     return;
   }
 
-  if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
+  if (
+    !unitName ||
+    !unitId ||
+    !bodyColor ||
+    !variation ||
+    !assignedDriver ||
+    !deliveryDestination?.address ||
+    !pickupLocation?.address
+  ) {
     alert("All fields are required.");
     return;
   }
 
-  const isAlreadyAllocated = allocation.some(
-    (a) => a.unitId === unitId
-  );
-
+  const isAlreadyAllocated = allocation.some(a => a.unitId === unitId);
   if (isAlreadyAllocated) {
     alert("This unit is already allocated to a driver.");
     return;
@@ -137,7 +154,7 @@ const availableUnits = inventory.filter(
     "https://itrack-web-backend.onrender.com/api/createAllocation",
     {
       ...newAllocation,
-      date: today   // <-- AUTO DATE HERE
+      date: today
     },
     { withCredentials: true }
   )
@@ -149,13 +166,16 @@ const availableUnits = inventory.filter(
       bodyColor: "",
       variation: "",
       assignedDriver: "",
+      deliveryDestination: { address: "" },
+      pickupLocation: { address: "" },
       status: "Pending"
     });
 
     setIsCreateModalOpen(false);
   })
-  .catch((err) => console.log(err));
+  .catch(err => console.log(err));
 };
+
 
 
 
@@ -444,6 +464,89 @@ const visibleAllocations = currentAllocations.filter(item => {
 
   return false; // Other roles see nothing
 });
+
+
+
+const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // make sure you have your API key in .env
+});
+
+const PICKUP_COORDS = { lat: 14.2777422, lng: 121.083381 };
+const DESTINATION_COORDS = { lat: 14.6056012, lng: 121.0793976 };
+
+
+
+
+
+const LocationMap = ({ pickup, destination }) => {
+  const [directions, setDirections] = useState(null);
+
+  if (!pickup || !destination) return null;
+
+  const bounds = new window.google.maps.LatLngBounds();
+  bounds.extend(pickup);
+  bounds.extend(destination);
+
+  return (
+    <div style={{ height: "300px", width: "100%", marginTop: "10px" }}>
+      <GoogleMap
+        mapContainerStyle={{ width: "100%", height: "100%" }}
+        onLoad={(map) => map.fitBounds(bounds)}
+        options={{
+          zoomControl: false,
+          scrollwheel: true,
+          draggable: true,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        }}
+      >
+        {/* Markers */}
+        <Marker position={pickup} label={{ color: "green" }} />
+        <Marker position={destination} label={{ color: "blue" }} />
+
+        {/* Directions */}
+        <DirectionsService
+          options={{
+            origin: pickup,
+            destination: destination,
+            travelMode: "DRIVING",
+          }}
+          callback={(response, status) => {
+            if (status === "OK" && response) {
+              setDirections(response);
+            }
+          }}
+        />
+
+        {directions && (
+          <DirectionsRenderer
+            options={{
+              directions: directions,
+              suppressMarkers: true, // keep your custom markers
+              polylineOptions: { strokeColor: "#006dfcff", strokeWeight: 4 },
+            }}
+          />
+        )}
+      </GoogleMap>
+    </div>
+  );
+};
+
+
+
+
+
+const getCoords = (address) => {
+  switch (address) {
+    case "Sta. Rosa Laguna":
+      return { lat: 14.2777422, lng: 121.083381 }; // example coords
+    case "Isuzu Pasig Dealership, Metro Manila":
+      return { lat: 14.6056012, lng: 121.0793976 }; // example coords
+    default:
+      return null;
+  }
+};
 
 
 
@@ -891,7 +994,7 @@ const visibleAllocations = currentAllocations.filter(item => {
 
        {isCreateModalOpen && (
   <div className="modal-overlay">
-    <div className="modal">
+    <div className="modal2">
       <p className="modaltitle">Allocate Driver</p>
       <div className="modalline"></div>
 
@@ -958,6 +1061,55 @@ const visibleAllocations = currentAllocations.filter(item => {
             </select>
           </div>
 
+          {/* PICKUP LOCATION */}
+<div className="modal-form-group">
+  <label>Pickup Location</label>
+  <select
+    value={newAllocation.pickupLocation.address}
+    onChange={(e) =>
+      setNewAllocation({
+        ...newAllocation,
+        pickupLocation: { address: e.target.value }
+      })
+    }
+  >
+    <option value="">Select Pickup Location</option>
+    <option value="Sta. Rosa Laguna">Sta. Rosa Laguna</option>
+  </select>
+</div>
+
+
+{/* DELIVERY DESTINATION */}
+<div className="modal-form-group">
+  <label>Drop-off Destination</label>
+  <select
+    value={newAllocation.deliveryDestination.address}
+    onChange={(e) =>
+      setNewAllocation({
+        ...newAllocation,
+        deliveryDestination: { address: e.target.value }
+      })
+    }
+  >
+    <option value="">Select Drop-off Destination</option>
+    <option value="Isuzu Pasig Dealership, Metro Manila">
+      Isuzu Pasig Dealership, Metro Manila
+    </option>
+  </select>
+</div>
+
+{/* MAP PREVIEW */}
+{isLoaded && newAllocation.pickupLocation.address && newAllocation.deliveryDestination.address && (
+  <div className="modal-form-group">
+    <label></label>
+    <LocationMap
+      pickup={getCoords(newAllocation.pickupLocation.address)}
+      destination={getCoords(newAllocation.deliveryDestination.address)}
+    />
+  </div>
+)}
+
+
         </div>
 
         <div className="modal-buttons">
@@ -976,71 +1128,92 @@ const visibleAllocations = currentAllocations.filter(item => {
   </div>
 )}
 
+
 {editAllocation && (
   <div className="modal-overlay">
     <div className="modal">
       <p className="modaltitle">Edit Allocation</p>
       <div className="modalline"></div>
+
       <div className="modal-content">
         <div className="modal-form">
 
           {/* UNIT NAME (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Unit Name</label>
-            <input
-              type="text"
-              value={editAllocation.unitName}
-              disabled
-            />
+            <input type="text" value={editAllocation.unitName} disabled />
           </div>
 
           {/* CONDUCTION NUMBER (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Conduction Number</label>
-            <input
-              type="text"
-              value={editAllocation.unitId}
-              disabled
-            />
+            <input type="text" value={editAllocation.unitId} disabled />
           </div>
 
           {/* BODY COLOR (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Body Color</label>
-            <input
-              type="text"
-              value={editAllocation.bodyColor}
-              disabled
-            />
+            <input type="text" value={editAllocation.bodyColor} disabled />
           </div>
 
           {/* VARIATION (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Variation</label>
-            <input
-              type="text"
-              value={editAllocation.variation}
-              disabled
-            />
+            <input type="text" value={editAllocation.variation} disabled />
           </div>
 
           {/* ASSIGNED DRIVER (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Assigned Driver</label>
-            <input
-              type="text"
-              value={editAllocation.assignedDriver}
-              disabled
-            />
+            <input type="text" value={editAllocation.assignedDriver} disabled />
           </div>
 
-          {/* STATUS — ONLY EDITABLE FIELD */}
+          {/* PICKUP LOCATION */}
+          <div className="modal-form-group">
+            <label>Pickup Location</label>
+            <select
+              value={editAllocation.pickupLocation?.address || ""}
+              onChange={(e) =>
+                setEditAllocation({
+                  ...editAllocation,
+                  pickupLocation: { address: e.target.value }
+                })
+              }
+            >
+              <option value="">Select Pickup Location</option>
+              <option value="Sta. Rosa Laguna">Sta. Rosa Laguna</option>
+            </select>
+          </div>
+
+          {/* DELIVERY DESTINATION */}
+          <div className="modal-form-group">
+            <label>Delivery Destination</label>
+            <select
+              value={editAllocation.deliveryDestination?.address || ""}
+              onChange={(e) =>
+                setEditAllocation({
+                  ...editAllocation,
+                  deliveryDestination: { address: e.target.value }
+                })
+              }
+            >
+              <option value="">Select Drop-off Destination</option>
+              <option value="Isuzu Pasig Dealership, Metro Manila">
+                Isuzu Pasig Dealership, Metro Manila
+              </option>
+            </select>
+          </div>
+
+          {/* STATUS */}
           <div className="modal-form-group">
             <label>Status</label>
             <select
               value={editAllocation.status}
               onChange={(e) =>
-                setEditAllocation({ ...editAllocation, status: e.target.value })
+                setEditAllocation({
+                  ...editAllocation,
+                  status: e.target.value
+                })
               }
             >
               <option value="Pending">Pending</option>
@@ -1058,7 +1231,10 @@ const visibleAllocations = currentAllocations.filter(item => {
           >
             Save
           </button>
-          <button className="cancel-btn1" onClick={() => setEditAllocation(null)}>
+          <button
+            className="cancel-btn1"
+            onClick={() => setEditAllocation(null)}
+          >
             Cancel
           </button>
         </div>
@@ -1066,6 +1242,7 @@ const visibleAllocations = currentAllocations.filter(item => {
     </div>
   </div>
 )}
+
 
 
 

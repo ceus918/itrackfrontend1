@@ -6,8 +6,7 @@ import "../css/ServiceRequest.css";
 import truckIconImg from "../icons/truck1.png";
 
 const defaultCenter = {
-  lat: 14.3336,  // Latitude for Biñan, Laguna
-  lng: 121.0830, // Longitude for Biñan, Laguna
+  lat: 14.2777422, lng: 121.083381, // Longitude for Laguna
 };
 const isValidLatLng = (lat, lng) =>
   typeof lat === "number" &&
