@@ -1203,3 +1203,56 @@ margin-right: 15px;
 .recent-item:hover {
   background: #f1f1f1;
 }
+
+
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-box {
+  padding: 9px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: 105%;
+  width: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  z-index: 999;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.custom-select-search {
+  width: 98.2%;
+  padding: 8px;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  outline: none;
+}
+
+.custom-select-options {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.custom-select-option {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.custom-select-option:hover {
+  background-color: #f0f0f0;
+}
+
+.no-results {
+  padding: 10px;
+  color: #888;
+}

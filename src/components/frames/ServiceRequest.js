@@ -19,7 +19,8 @@ const ServiceRequest = () => {
     dateCreated: '',
     unitId: '',
     service: [],
-    status: ''
+    status: '',
+    assignTo: ''
   });
   const [editRequest, setEditRequest] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -56,6 +57,7 @@ const ServiceRequest = () => {
     password: "",
     // other fields...
   });
+const [searchAgent, setSearchAgent] = useState("");
 
 
 
@@ -99,6 +101,7 @@ const ServiceRequest = () => {
 
   useEffect(() => {
   fetchRequests();
+  
   axios.get("https://itrack-web-backend.onrender.com/api/getStock")
     .then(res => setInventory(res.data))
     .catch(err => console.log(err));
@@ -194,7 +197,7 @@ const ServiceRequest = () => {
 
   
   const handleUpdateRequest = (id) => {
-  const { dateCreated, unitId, service, unitName } = editRequest;
+  const { dateCreated, unitId, service, unitName, assignTo } = editRequest;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -202,7 +205,7 @@ const ServiceRequest = () => {
     return;
   }
 
-  if (!dateCreated || !unitId || service.length === 0 || !unitName) {
+  if (!dateCreated || !unitId || service.length === 0 || !unitName||!assignTo) {
     alert("All fields are required.");
     return;
   }
@@ -379,6 +382,7 @@ const fetchUsers = () => {
   }, []);
 
   useEffect(() => {
+    fetchSalesAgent();
     fetchUsers();
   }, []);
 
@@ -433,12 +437,31 @@ const visibleRequests = currentRequests.filter(item => {
   if (fullUser.role === "Sales Agent") {
     // Find the inventory item for this allocation
     const inventoryItem = inventory.find(u => u.unitId === item.unitId);
-    return inventoryItem?.assignedTo === fullUser.name; // Only show if assigned to this user
+    return inventoryItem?.assignTo === fullUser.name; // Only show if assigned to this user
   }
 
   return false; // Other roles see nothing
 });
 
+
+const [agents, setAgents] = useState([]);
+
+const fetchSalesAgent = () => {
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+    .then(res => {
+      const driverList = res.data.filter(u => u.role?.toLowerCase() === "sales agent");
+      setAgents(driverList);
+    })
+    .catch(err => console.error(err));
+};
+
+
+const [searchOpen, setSearchOpen] = useState(false);
+
+const filteredAgents =
+  agents?.filter((agent) =>
+    agent?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
 
 
@@ -535,6 +558,8 @@ const visibleRequests = currentRequests.filter(item => {
             </div>
           </div>
 
+          
+
         </div>
 
         {/* Buttons */}
@@ -552,7 +577,7 @@ const visibleRequests = currentRequests.filter(item => {
       {/* Edit Modal */}
       {editRequest && !['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
   <div className="modal-overlay">
-    <div className="modal">
+    <div className="modal2">
       <p className='modaltitle'>Edit Vehicle Preparation</p>
        <div className='modalline'> 
       <div className="modal-content">
@@ -620,6 +645,63 @@ const visibleRequests = currentRequests.filter(item => {
 
 
           </div>
+
+          <div className="modal-form-group">
+  <label>
+    Assign To <span style={{ color: "red" }}>*</span>
+  </label>
+
+  <div className="custom-select-container">
+
+    {/* Selected Value */}
+    <div
+      className="custom-select-box"
+      onClick={() => setSearchOpen(!searchOpen)}
+    >
+      {editRequest.assignTo || "Select Sales Agent"}
+    </div>
+
+    {/* Dropdown */}
+    {searchOpen && (
+      <div className="custom-select-dropdown">
+
+        {/* Search inside dropdown */}
+        <input
+          type="text"
+          className="custom-select-search"
+          placeholder="Search agent..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        {/* Options */}
+        <div className="custom-select-options">
+          {filteredAgents.map((agent) => (
+            <div
+              key={agent._id}
+              className="custom-select-option"
+              onClick={() => {
+                setEditRequest({ ...editRequest, assignTo: agent.name });
+                setSearchOpen(false);
+                setSearchTerm("");
+              }}
+            >
+              {agent.name}
+            </div>
+          ))}
+
+          {filteredAgents.length === 0 && (
+            <div className="no-results">No results found</div>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+
+
+
         </div>
 
         <div className="modal-buttons">
