@@ -11,6 +11,7 @@ import signOutIcon from '../icons/signout.png';
 import driverIcon from '../icons/driverallocation.png';
 import release from '../icons/release.png';
 import logs from '../icons/logs.png';
+import assign from '../icons/assign.png';
 
 import axios from 'axios';
 import logo from '../icons/itrackwhite.png'; 
@@ -34,13 +35,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   { name: "Dashboard", icon: dashboardIcon, path: "/dashboard" },
   { name: "Vehicle Stocks", icon: stocksIcon, path: "/inventory" },
   { name: "Vehicle Preperation", icon: requestIcon, path: "/servicerequest" },
-  { name: "Release", icon: release, path: "/release" },
-  // { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" },
+  { name: "Agent Allocation", icon: assign, path: "/unitallocation" },
+  // { name: "Vehicle Shipments", icon: shipmentsIcon, path: "/shipments" }, /unitallocation
   
   { name: "Driver Allocation", icon: driverIcon, path: "/driverallocation" },
   { name: "Test Drive", icon: testDriveIcon, path: "/testdrive" }, // 
   { name: "User Management", icon: usersIcon, path: "/users" },
-  { name: "Audit Trail", icon: logs, path: "/audittrail" },
+  
   { name: "Reports", icon: reportsIcon, path: "/reports" },
 ];
 

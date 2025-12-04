@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import '../css/ServiceRequest.css';
@@ -10,7 +11,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
 import ViewShipment from "./ViewShipment"; // <-- add this
-import { GoogleMap, Marker, useJsApiLoader, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, Marker, useJsApiLoader, DirectionsService, DirectionsRenderer,Autocomplete } from '@react-google-maps/api';
 
 
 const DriverAllocation = () => {
@@ -468,65 +469,93 @@ const visibleAllocations = currentAllocations.filter(item => {
 
 
 const { isLoaded } = useJsApiLoader({
-  googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // make sure you have your API key in .env
+  googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  libraries: ["places"],
 });
+
 
 const PICKUP_COORDS = { lat: 14.2777422, lng: 121.083381 };
 const DESTINATION_COORDS = { lat: 14.6056012, lng: 121.0793976 };
 
+const [recentPickup, setRecentPickup] = useState([]);
+const [recentDropoff, setRecentDropoff] = useState([]);
+const [showPickupDropdown, setShowPickupDropdown] = useState(false);
+const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
+
+useEffect(() => {
+  setRecentPickup(JSON.parse(localStorage.getItem("pickup_searches")) || []);
+  setRecentDropoff(JSON.parse(localStorage.getItem("dropoff_searches")) || []);
+}, []);
 
 
+
+const pickupRef = useRef();
+const dropoffRef = useRef();
+
+
+const [pickupCoords, setPickupCoords] = useState(null);
+const [destCoords, setDestCoords] = useState(null);
+
+useEffect(() => {
+  const load = async () => {
+    if (newAllocation.pickupLocation.address) {
+      setPickupCoords(await getCoords(newAllocation.pickupLocation.address));
+    }
+    if (newAllocation.deliveryDestination.address) {
+      setDestCoords(await getCoords(newAllocation.deliveryDestination.address));
+    }
+  };
+
+  load();
+}, [
+  newAllocation.pickupLocation.address,
+  newAllocation.deliveryDestination.address
+]);
 
 
 const LocationMap = ({ pickup, destination }) => {
   const [directions, setDirections] = useState(null);
 
-  if (!pickup || !destination) return null;
-
-  const bounds = new window.google.maps.LatLngBounds();
-  bounds.extend(pickup);
-  bounds.extend(destination);
+  const center =
+    pickup || destination || { lat: 14.5995, lng: 120.9842 }; // Philippines default
 
   return (
     <div style={{ height: "300px", width: "100%", marginTop: "10px" }}>
       <GoogleMap
+        center={center}
+        zoom={14}
         mapContainerStyle={{ width: "100%", height: "100%" }}
-        onLoad={(map) => map.fitBounds(bounds)}
         options={{
-          zoomControl: false,
-          scrollwheel: true,
-          draggable: true,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
         }}
       >
-        {/* Markers */}
-        <Marker position={pickup} label={{ color: "green" }} />
-        <Marker position={destination} label={{ color: "blue" }} />
+        {/* SINGLE MARKERS */}
+        {pickup && <Marker position={pickup} label={{ color: "green" }} />}
+        {destination && <Marker position={destination} label={{ color: "blue" }} />}
 
-        {/* Directions */}
-        <DirectionsService
-          options={{
-            origin: pickup,
-            destination: destination,
-            travelMode: "DRIVING",
-          }}
-          callback={(response, status) => {
-            if (status === "OK" && response) {
-              setDirections(response);
-            }
-          }}
-        />
-
-        {directions && (
-          <DirectionsRenderer
-            options={{
-              directions: directions,
-              suppressMarkers: true, // keep your custom markers
-              polylineOptions: { strokeColor: "#006dfcff", strokeWeight: 4 },
-            }}
-          />
+        {/* SHOW ROUTE ONLY WHEN BOTH EXIST */}
+        {pickup && destination && (
+          <>
+            <DirectionsService
+              options={{
+                origin: pickup,
+                destination: destination,
+                travelMode: "DRIVING",
+              }}
+              callback={(res, status) => {
+                if (status === "OK") setDirections(res);
+              }}
+            />
+            <DirectionsRenderer
+              options={{
+                directions: directions,
+                suppressMarkers: true,
+                polylineOptions: { strokeColor: "#006dfcff", strokeWeight: 4 },
+              }}
+            />
+          </>
         )}
       </GoogleMap>
     </div>
@@ -535,18 +564,43 @@ const LocationMap = ({ pickup, destination }) => {
 
 
 
+const getCoords = async (address) => {
+  if (!address) return null;
 
+  const geocoder = new window.google.maps.Geocoder();
 
-const getCoords = (address) => {
-  switch (address) {
-    case "Sta. Rosa Laguna":
-      return { lat: 14.2777422, lng: 121.083381 }; // example coords
-    case "Isuzu Pasig Dealership, Metro Manila":
-      return { lat: 14.6056012, lng: 121.0793976 }; // example coords
-    default:
-      return null;
-  }
+  return new Promise((resolve) => {
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        resolve(results[0].geometry.location.toJSON());
+      } else {
+        resolve(null);
+      }
+    });
+  });
 };
+
+
+
+const saveRecent = (key, value) => {
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+
+  // Prevent duplicates
+  list = list.filter((item) => item !== value);
+
+  // Add to start
+  list.unshift(value);
+
+  // Keep max 5
+  list = list.slice(0, 5);
+
+  localStorage.setItem(key, JSON.stringify(list));
+
+  // Update state
+  if (key === "pickup_searches") setRecentPickup(list);
+  if (key === "dropoff_searches") setRecentDropoff(list);
+};
+
 
 
 
@@ -1061,51 +1115,144 @@ const getCoords = (address) => {
             </select>
           </div>
 
-          {/* PICKUP LOCATION */}
+       {/* PICKUP LOCATION */}
 <div className="modal-form-group">
   <label>Pickup Location</label>
-  <select
-    value={newAllocation.pickupLocation.address}
-    onChange={(e) =>
-      setNewAllocation({
-        ...newAllocation,
-        pickupLocation: { address: e.target.value }
-      })
-    }
-  >
-    <option value="">Select Pickup Location</option>
-    <option value="Sta. Rosa Laguna">Sta. Rosa Laguna</option>
-  </select>
+  <div style={{ position: "relative" }}>
+    <Autocomplete
+      onLoad={(ref) => (pickupRef.current = ref)}
+      onPlaceChanged={async () => {
+        const place = pickupRef.current.getPlace();
+        if (place?.formatted_address) {
+          setNewAllocation((prev) => ({
+            ...prev,
+            pickupLocation: { address: place.formatted_address }
+          }));
+
+          // Update pickup coordinates
+          const coords = await getCoords(place.formatted_address);
+          setPickupCoords(coords);
+
+          // Add to recent searches
+          setRecentPickup((prev) => {
+            const newList = [place.formatted_address, ...prev];
+            return Array.from(new Set(newList)).slice(0, 5); // keep max 5
+          });
+
+          setShowPickupDropdown(false); // hide dropdown after selection
+        }
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Search pickup location"
+        className="location-input large"
+        defaultValue={newAllocation.pickupLocation.address}
+        onFocus={() => setShowPickupDropdown(true)}
+      />
+    </Autocomplete>
+
+    {/* Recent searches dropdown */}
+    {showPickupDropdown && recentPickup.length > 0 && (
+      <div className="recent-box">
+         <span style={{ marginRight: "10px", color: "#83b9ffff",fontSize:12 }}>Recent Searches</span> {/* Recent icon */}
+        {recentPickup.map((item, idx) => (
+          
+          <div
+            className="recent-item"
+            key={idx}
+            onClick={async () => {
+              setNewAllocation((prev) => ({
+                ...prev,
+                pickupLocation: { address: item }
+              }));
+
+              const coords = await getCoords(item);
+              setPickupCoords(coords);
+              setShowPickupDropdown(false);
+            }}
+          >
+           
+            {item}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
 </div>
+
 
 
 {/* DELIVERY DESTINATION */}
 <div className="modal-form-group">
   <label>Drop-off Destination</label>
-  <select
-    value={newAllocation.deliveryDestination.address}
-    onChange={(e) =>
-      setNewAllocation({
-        ...newAllocation,
-        deliveryDestination: { address: e.target.value }
-      })
-    }
-  >
-    <option value="">Select Drop-off Destination</option>
-    <option value="Isuzu Pasig Dealership, Metro Manila">
-      Isuzu Pasig Dealership, Metro Manila
-    </option>
-  </select>
+  <div style={{ position: "relative" }}>
+    <Autocomplete
+      onLoad={(ref) => (dropoffRef.current = ref)}
+      onPlaceChanged={async () => {
+        const place = dropoffRef.current.getPlace();
+        if (place?.formatted_address) {
+          setNewAllocation((prev) => ({
+            ...prev,
+            deliveryDestination: { address: place.formatted_address }
+          }));
+
+          const coords = await getCoords(place.formatted_address);
+          setDestCoords(coords);
+
+          setRecentDropoff((prev) => {
+            const newList = [place.formatted_address, ...prev];
+            return Array.from(new Set(newList)).slice(0, 5);
+          });
+
+          setShowDropoffDropdown(false);
+        }
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Search drop-off location"
+        className="location-input large"
+        defaultValue={newAllocation.deliveryDestination.address}
+        onFocus={() => setShowDropoffDropdown(true)}
+      />
+    </Autocomplete>
+
+    {showDropoffDropdown && recentDropoff.length > 0 && (
+      <div className="recent-box">
+        <div style={{ padding: "5px 10px", fontSize: 12, color: "#83b9ff" }}>
+          Recent Searches
+        </div>
+        {recentDropoff.map((item, idx) => (
+          <div
+            key={idx}
+            className="recent-item"
+            onClick={async () => {
+              setNewAllocation((prev) => ({
+                ...prev,
+                deliveryDestination: { address: item }
+              }));
+
+              const coords = await getCoords(item);
+              setDestCoords(coords);
+              setShowDropoffDropdown(false);
+            }}
+          >
+            
+            {item}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
 </div>
 
+
 {/* MAP PREVIEW */}
-{isLoaded && newAllocation.pickupLocation.address && newAllocation.deliveryDestination.address && (
+{isLoaded && pickupCoords && destCoords && (
   <div className="modal-form-group">
     <label></label>
-    <LocationMap
-      pickup={getCoords(newAllocation.pickupLocation.address)}
-      destination={getCoords(newAllocation.deliveryDestination.address)}
-    />
+    <LocationMap pickup={pickupCoords} destination={destCoords} />
   </div>
 )}
 
@@ -1131,7 +1278,7 @@ const getCoords = (address) => {
 
 {editAllocation && (
   <div className="modal-overlay">
-    <div className="modal">
+    <div className="modal2">
       <p className="modaltitle">Edit Allocation</p>
       <div className="modalline"></div>
 
@@ -1141,26 +1288,17 @@ const getCoords = (address) => {
           {/* UNIT NAME (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Unit Name</label>
-            <input type="text" value={editAllocation.unitName} disabled />
+            <input type="text" 
+            value={`${editAllocation.unitName} - ${editAllocation.unitId}`}disabled/>
           </div>
 
-          {/* CONDUCTION NUMBER (READ-ONLY) */}
+          {/* CONDUCTION NUMBER (READ-ONLY)
           <div className="modal-form-group">
             <label>Conduction Number</label>
             <input type="text" value={editAllocation.unitId} disabled />
-          </div>
+          </div> */}
 
-          {/* BODY COLOR (READ-ONLY) */}
-          <div className="modal-form-group">
-            <label>Body Color</label>
-            <input type="text" value={editAllocation.bodyColor} disabled />
-          </div>
-
-          {/* VARIATION (READ-ONLY) */}
-          <div className="modal-form-group">
-            <label>Variation</label>
-            <input type="text" value={editAllocation.variation} disabled />
-          </div>
+          
 
           {/* ASSIGNED DRIVER (READ-ONLY) */}
           <div className="modal-form-group">
@@ -1168,43 +1306,27 @@ const getCoords = (address) => {
             <input type="text" value={editAllocation.assignedDriver} disabled />
           </div>
 
-          {/* PICKUP LOCATION */}
+          {/* PICKUP LOCATION (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Pickup Location</label>
-            <select
+            <input
+              type="text"
               value={editAllocation.pickupLocation?.address || ""}
-              onChange={(e) =>
-                setEditAllocation({
-                  ...editAllocation,
-                  pickupLocation: { address: e.target.value }
-                })
-              }
-            >
-              <option value="">Select Pickup Location</option>
-              <option value="Sta. Rosa Laguna">Sta. Rosa Laguna</option>
-            </select>
+              disabled
+            />
           </div>
 
-          {/* DELIVERY DESTINATION */}
+          {/* DELIVERY DESTINATION (READ-ONLY) */}
           <div className="modal-form-group">
             <label>Delivery Destination</label>
-            <select
+            <input
+              type="text"
               value={editAllocation.deliveryDestination?.address || ""}
-              onChange={(e) =>
-                setEditAllocation({
-                  ...editAllocation,
-                  deliveryDestination: { address: e.target.value }
-                })
-              }
-            >
-              <option value="">Select Drop-off Destination</option>
-              <option value="Isuzu Pasig Dealership, Metro Manila">
-                Isuzu Pasig Dealership, Metro Manila
-              </option>
-            </select>
+              disabled
+            />
           </div>
 
-          {/* STATUS */}
+          {/* STATUS (Editable) */}
           <div className="modal-form-group">
             <label>Status</label>
             <select

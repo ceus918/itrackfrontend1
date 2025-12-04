@@ -832,7 +832,7 @@ const fetchUsers = () => {
                     onClick={() => handleEditStockClick(item)}
                   >
                     Edit
-                  </button>
+                  </button> {' '}
                   <button
                     className="action-btn delete"
                     onClick={() => handleDeleteStock(item._id)}

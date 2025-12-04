@@ -10,6 +10,8 @@ import filterIcon from '../icons/filter.png';
 import downloadIcon from '../icons/download.png';
 import logo from '../icons/I-track logo.png'; 
 import { getCurrentUser } from '../getCurrentUser';
+import { useNavigate } from "react-router-dom";
+
 
 
 
@@ -39,6 +41,9 @@ const [editUser, setEditUser] = useState(null);
   password: "",
   // other fields...
 });
+
+const navigate = useNavigate();
+
 
 
 const fileInputRef = useRef(null);
@@ -198,7 +203,7 @@ const handleDownloadPDF = () => {
           ? new Date(req.dateCreated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
           : '',
     req.preparedBy || 'N/A',
-    req.vehicleRegNo,
+    req.unitId,
     Array.isArray(req.service) ? req.service.join(', ') : req.service,
     req.serviceTime !== null && req.serviceTime !== undefined ? `${req.serviceTime} mins` : 'N/A',
     req.status
@@ -771,9 +776,19 @@ const fetchUsers = () => {
     <img src={filterIcon} alt="Filter" className="button-icon1" />
   </button>
 
-  <button className="pdf-btn" onClick={handleDownloadPDF}>Print PDF<img src={downloadIcon} alt="Download" className="button-icon" />
-    
+  <button className="pdf-btn" onClick={handleDownloadPDF}>
+    Print PDF
+    <img src={downloadIcon} alt="Download" className="button-icon" />
   </button>
+
+  {/* ✅ NEW BUTTON HERE */}
+<button 
+  className="audit-btn"
+  onClick={() => navigate("/audittrail")}
+>
+  Go to Audit Trail
+</button>
+
 </div>
 
 
@@ -809,7 +824,7 @@ const fetchUsers = () => {
                             <td>{req.completedAt ? new Date(req.completedAt).toLocaleDateString('en-CA') : (req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-CA') : '')}</td>
                             <td>{req.completedAt ? new Date(req.completedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : (req.createdAt ? new Date(req.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '')}</td>
                             <td>{req.preparedBy || 'N/A'}</td>
-                            <td>{req.vehicleRegNo}</td>
+                            <td>{req.unitId}</td>
                             <td>{Array.isArray(req.service) ? req.service.join(', ') : req.service}</td>
                             <td>{req.serviceTime !== null && req.serviceTime !== undefined
                               ? `${req.serviceTime} mins`

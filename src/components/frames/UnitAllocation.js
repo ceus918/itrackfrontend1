@@ -153,7 +153,7 @@ const UnitAllocation = () => {
                     <td>
                       <button className="action-btn" onClick={() => setEditAllocation(alloc)}>
                         Edit
-                      </button>
+                      </button>{' '}
                       <button className="action-btn" onClick={() => handleDeleteAllocation(alloc._id)}>
                         Delete
                       </button>

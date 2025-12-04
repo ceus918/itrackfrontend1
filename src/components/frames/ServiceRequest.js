@@ -19,7 +19,7 @@ const ServiceRequest = () => {
     dateCreated: '',
     unitId: '',
     service: [],
-    status: 'Pending'
+    status: ''
   });
   const [editRequest, setEditRequest] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -183,7 +183,7 @@ const ServiceRequest = () => {
         unitId: '',
         unitName: '',
         service: [],
-        status: 'Pending'
+        status: ''
       });
       setIsCreateModalOpen(false);
     })
@@ -454,47 +454,41 @@ const visibleRequests = currentRequests.filter(item => {
       <div className="modal-content">
         <div className="modal-form">
 
-          {/* Date */}
-          <div className="modal-form-group">
-            <label>Date Created <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="date"
-              value={newRequest.dateCreated}
-              onChange={(e) =>
-                setNewRequest({ ...newRequest, dateCreated: e.target.value })
-              }
-              required
-            />
-          </div>
-
+          
           {/* Existing Inventory Only */}
-          <div className="modal-form-group">
-            <label>Select Existing Unit <span style={{ color: 'red' }}>*</span></label>
-            <select
-              style={{ fontSize: '13px' }}
-              value={newRequest.unitId}
-              onChange={(e) => {
-                const selectedUnit = inventory.find(u => u.unitId === e.target.value);
-                setNewRequest({
-                  ...newRequest,
-                  unitId: selectedUnit?.unitId || '',
-                  unitName: selectedUnit?.unitName || '',
-                });
-              }}
-            >
-              <option value="">Select from Inventory</option>
-              {inventory.map((unit) => (
-                <option key={unit._id} value={unit.unitId}>
-                  {unit.unitName} ({unit.unitId})
-                </option>
-              ))}
-            </select>
-          </div>
+<div className="modal-form-group">
+  <label>Select Existing Unit <span style={{ color: 'red' }}>*</span></label>
+  <select
+    style={{ fontSize: '13px' }}
+    value={newRequest.unitId}
+    onChange={(e) => {
+      const selectedUnit = inventory.find(u => u.unitId === e.target.value);
+      setNewRequest({
+        ...newRequest,
+        unitId: selectedUnit?.unitId || '',
+        unitName: selectedUnit?.unitName || '',
+        status: 'In Dispatch', // Automatically set status
+        dateCreated: new Date() // Automatically set date
+      });
+    }}
+  >
+    <option value="">Select from Inventory</option>
+    {inventory.map((unit) => {
+      // Check if this unit is already used in requests
+      const isUsed = requests.some(req => req.unitId === unit.unitId);
+      return (
+        <option key={unit._id} value={unit.unitId} disabled={isUsed}>
+          {unit.unitName} ({unit.unitId}) {isUsed ? ' - Already In Proccess' : ''}
+        </option>
+      );
+    })}
+  </select>
+</div>
+
 
           {/* Services */}
           <div className="modal-form-group">
             <label>Service <span style={{ color: 'red' }}>*</span></label>
-
             <div className="dropdown">
               <button
                 type="button"
@@ -541,29 +535,18 @@ const visibleRequests = currentRequests.filter(item => {
             </div>
           </div>
 
-          {/* Status */}
-          <div className="modal-form-group">
-            <label>Status</label>
-            <select
-              value={newRequest.status}
-              onChange={(e) =>
-                setNewRequest({ ...newRequest, status: e.target.value })
-              }
-            >
-              <option value="Pending">Pending</option>
-            </select>
-          </div>
         </div>
 
         {/* Buttons */}
         <div className="modal-buttons">
-          <button className="create-btn1" onClick={handleCreateRequest}>Submit</button>
-          <button className="cancel-btn1" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+          <button className="create-btn2" onClick={handleCreateRequest}>Submit</button>
+          <button className="cancel-btn2" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
         </div>
       </div>
     </div>
   </div>
 )}
+
 
 
       {/* Edit Modal */}
@@ -587,17 +570,6 @@ const visibleRequests = currentRequests.filter(item => {
             />
           </div>
 
-          <div className="modal-form-group">
-        <label>Conduction Number <span style={{color: 'red'}}>*</span></label>
-            <input
-              type="text"
-              value={editRequest.unitId}
-              onChange={(e) =>
-                setEditRequest({ ...editRequest, unitId: e.target.value })
-              }
-              required
-            />
-          </div>
 
          <div className="modal-form-group">
   <label>Service <span style={{color: 'red'}}>*</span></label>
@@ -641,7 +613,7 @@ const visibleRequests = currentRequests.filter(item => {
     setEditRequest({ ...editRequest, status: e.target.value })
   }
 >
-  <option value="Pending" disabled>Pending</option>
+  <option value="In Dispatch" disabled>In Dispatch</option>
   <option value="In Progress">In Progress</option>
   <option value="Completed">Completed</option>
 </select>
@@ -651,9 +623,39 @@ const visibleRequests = currentRequests.filter(item => {
         </div>
 
         <div className="modal-buttons">
+         <button 
+  className="release-btn"
+  onClick={() => {
+    const confirmRelease = window.confirm("Are you sure you want to mark this as Released?");
+
+    if (!confirmRelease) return; // CANCEL → stop here
+
+    const updated = {
+      ...editRequest,
+      status: "Completed"
+    };
+
+    axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateRequest/${editRequest._id}`,
+      updated
+    )
+    .then(() => {
+      alert("Vehicle marked as Released!");
+      setEditRequest(null);  // close modal
+      fetchRequests();       // refresh table
+    })
+    .catch(err => console.error(err));
+  }}
+>
+  Mark as Released
+</button>
+
+
+
           <button className="create-btn1" onClick={() => handleUpdateRequest(editRequest._id)}>
             Save
           </button>
+
           <button className="cancel-btn1" onClick={() => setEditRequest(null)}>
             Cancel
           </button>

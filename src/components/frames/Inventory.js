@@ -137,7 +137,7 @@ const validateConductionNumber = (value) => {
     alert(conductionError);
     return;
   }
-  if (!unitName || !unitId || !bodyColor || !variation || !editStock.status || !assignedTo) {
+  if (!unitName || !unitId || !bodyColor || !variation || !editStock.status) {
   alert('All fields are required!');
   return;
 }
@@ -1174,28 +1174,6 @@ const fetchSalesAgent = () => {
     <option value="Available">Available</option>
   </select>
 </div>
-
-{/* ------------------ ASSIGN TO ------------------ */}
-<div className="modal-form-group">
-  <label>
-    Assign To <span style={{ color: "red" }}>*</span>
-  </label>
-  <select
-    value={editStock.assignedTo || ""}
-    onChange={(e) =>
-      setEditStock({ ...editStock, assignedTo: e.target.value })
-    }
-    required
-  >
-    <option value="">Select Sales Agent</option>
-    {agents.map((agent) => (
-      <option key={agent._id} value={agent.name}>
-        {agent.name}
-      </option>
-    ))}
-  </select>
-</div>
-
 
 
         </div>

@@ -38,7 +38,18 @@
 }
 
 .filter-btn {
-  padding: 8px 20px; /* Consistent padding */
+  padding: 9px 21px; /* Consistent padding */
+  border: none;
+  background-color: #222;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  margin-top: 16px;
+}
+
+.audit-btn {
+  padding: 9.5px 20px; /* Consistent padding */
   border: none;
   background-color: #222;
   color: white;

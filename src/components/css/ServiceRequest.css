@@ -24,17 +24,23 @@
   z-index: 1001;
 }
 
-.modal2{
-   background-color: #fff; /* ✅ white modal box */
+.modal2 {
+  background-color: #fff; /* ✅ white modal box */
   padding: 30px;
-  padding-bottom: 0%;
+  padding-bottom: 0;
   border-radius: 5px;
   width: 1200px;
-  height: 800px;
+  height: auto;
   max-width: 95%;
+  max-height: 90vh; /* make sure modal doesn't exceed viewport height */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* soft shadow */
   z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevent content from spilling out */
+  
 }
+
 
 .modal h3 {
   margin-top: 0;
@@ -42,6 +48,8 @@
   font-size: 22px;
   font-weight: bold;
 }
+
+
 
 .modal-form {
   display: flex;
@@ -76,6 +84,14 @@
 
 .modal input,
 .modal select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal2 input,
+.modal2 select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -649,7 +665,7 @@ text-align: left !important;
 
 /* Modal Buttons Shared Style */
 .modal-buttons {
-  display: flex;
+  
   justify-content: flex-end;
   gap: 10px;
   
@@ -657,7 +673,7 @@ text-align: left !important;
 
 /* Create Button */
  .create-btn1 {
-  background-color: #007bff;
+
   color: white;
   border: none;
   padding: 2px 6px;
@@ -668,8 +684,32 @@ text-align: left !important;
   transition: background-color 0.3s ease;
 }
 
+.release-btn {
+
+  color: white;
+  border: none;
+  padding: 2px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 140px;
+  transition: background-color 0.3s ease;
+}
+
+.create-btn2 {
+
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 300px;
+  transition: background-color 0.3s ease;
+}
+
 .create-btn3 {
-  background-color: #007bff;
+
   color: white;
   border: none;
   padding: 2px 6px;
@@ -696,6 +736,20 @@ text-align: left !important;
   margin-top: 140px;
   transition: background-color 0.3s ease;
 }
+
+.cancel-btn2 {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 300px;
+  transition: background-color 0.3s ease;
+}
+
+
 .cancel-btn3 {
   background-color: #6c757d;
   color: white;
@@ -757,6 +811,18 @@ text-align: left !important;
 
 /* Added styles for the filter button */
 .filter-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: #3498db; /* Blue background */
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  
+  transition: background-color 0.3s ease;
+}
+
+.audit-btn {
   padding: 8px 20px;
   border: none;
   background-color: #3498db; /* Blue background */
@@ -764,7 +830,7 @@ text-align: left !important;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
+ 
   transition: background-color 0.3s ease;
 }
 
@@ -794,7 +860,7 @@ text-align: left !important;
 }
 
 /* Primary Action Button (Create/Save) */
-.create-btn1,
+.create-btn1,.create-btn2,.release-btn, 
 .save-btn,.create-btn3,
 .submit-btn {
   background-color: #e60000; /* Match your system's red color */
@@ -829,7 +895,7 @@ text-align: left !important;
 }
 
 /* Secondary Action Button (Cancel/Close) */
-.cancel-btn1,
+.cancel-btn1,.cancel-btn2,
 .close-btn,
 .cancel-btn3,
 .cancel-btn {
@@ -885,10 +951,32 @@ text-align: left !important;
   justify-content: center;
 }
 
+.audit-btn-modal {
+  background-color: #222; /* Match your system's dark color */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .filter-btn-modal:hover {
   background-color: #222222dd; /* Match your filter-toggle-btn hover */
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(34, 34, 34, 0.3);
+}
+
+.filter-btn-modal:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(34, 34, 34, 0.3);
 }
 
 .filter-btn-modal:active {
@@ -1078,4 +1166,40 @@ margin-right: 15px;
 
 .force-width2 {
   width: 550px !important;
+}
+
+
+.location-input {
+  width: 540px;
+  height: 38px;     /* ⬅ adjust height here */
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 13px;  /* ⬅ adjust font size */
+}
+
+.location-input.large {
+  height: 22px;
+  font-size: 14px;
+}
+
+
+.recent-box {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 4px;
+  padding: 4px 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.recent-item {
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.recent-item:hover {
+  background: #f1f1f1;
 }

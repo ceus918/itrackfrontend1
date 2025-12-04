@@ -17,10 +17,11 @@ const isValidLatLng = (lat, lng) =>
 const ViewShipment = ({ isOpen, onClose, data }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+ const { isLoaded } = useJsApiLoader({
+  googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  libraries: ["places"],   // <-- use ONLY this
+});
 
-  });
 
   useEffect(() => {
     if (!isOpen || !data?._id) return;
