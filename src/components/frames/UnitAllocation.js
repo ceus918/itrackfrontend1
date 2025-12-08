@@ -184,97 +184,130 @@ const UnitAllocation = () => {
           </div>
         </div>
 
-        {/* Modal */}
-        {(isModalOpen || editAllocation) && (
-          <div className="modal-overlay">
-            <div className="modal">
+       {/* Modal */}
+{(isModalOpen || editAllocation) && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <p className="modaltitle">
+        {isModalOpen ? "Allocate Unit" : "Edit Allocation"}
+      </p>
+      <div className="modalline"></div>
 
-              <h3>{isModalOpen ? "Allocate Unit" : "Edit Allocation"}</h3>
+      <div className="modal-content">
+        <div className="modal-form">
 
-              <div className="modal-content">
+          {/* ------------------ SELECT UNIT ------------------ */}
+          <div className="modal-form-group">
+            <label>
+              Unit <span style={{ color: "red" }}>*</span>
+            </label>
 
-                {/* Select Unit */}
-                <div className="modal-form-group">
-                  <label>Unit <span style={{ color: "red" }}>*</span></label>
-                  <select
-                    value={isModalOpen ? newAllocation.unitId : editAllocation.unitId}
-                    onChange={(e) => {
-                      const selectedUnit = availableUnits.find(u => u.unitId === e.target.value);
+            <select
+              value={
+                isModalOpen ? newAllocation.unitId : editAllocation.unitId
+              }
+              onChange={(e) => {
+                const selectedUnit = availableUnits.find(
+                  (u) => u.unitId === e.target.value
+                );
 
-                      if (selectedUnit) {
-                        if (isModalOpen) {
-                          setNewAllocation({
-                            ...newAllocation,
-                            unitName: selectedUnit.unitName,
-                            unitId: selectedUnit.unitId,
-                            bodyColor: selectedUnit.bodyColor,
-                            variation: selectedUnit.variation
-                          });
-                        } else {
-                          setEditAllocation({
-                            ...editAllocation,
-                            unitName: selectedUnit.unitName,
-                            unitId: selectedUnit.unitId,
-                            bodyColor: selectedUnit.bodyColor,
-                            variation: selectedUnit.variation
-                          });
-                        }
-                      }
-                    }}
-                  >
-                    <option value="">Select Unit</option>
-                    {availableUnits.map(unit => (
-                      <option key={unit._id} value={unit.unitId}>
-                        {unit.unitName} - {unit.unitId} ({unit.bodyColor})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Assign To */}
-                <div className="modal-form-group">
-                  <label>Assign To <span style={{ color: "red" }}>*</span></label>
-                  <select
-                    value={isModalOpen ? newAllocation.assignedTo : editAllocation.assignedTo}
-                    onChange={(e) => {
-                      const value = e.target.value;
-
-                      if (isModalOpen)
-                        setNewAllocation(prev => ({ ...prev, assignedTo: value }));
-                      else
-                        setEditAllocation(prev => ({ ...prev, assignedTo: value }));
-                    }}
-                  >
-                    <option value="">Select Sales Agent</option>
-                    {agents.map(agent => (
-                      <option key={agent._id} value={agent.name}>
-                        {agent.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-              </div>
-
-              <div className="modal-buttons">
-                <button
-                  onClick={() =>
-                    isModalOpen
-                      ? handleCreateAllocation()
-                      : handleUpdateAllocation(editAllocation._id)
+                if (selectedUnit) {
+                  if (isModalOpen) {
+                    setNewAllocation({
+                      ...newAllocation,
+                      unitName: selectedUnit.unitName,
+                      unitId: selectedUnit.unitId,
+                      bodyColor: selectedUnit.bodyColor,
+                      variation: selectedUnit.variation,
+                    });
+                  } else {
+                    setEditAllocation({
+                      ...editAllocation,
+                      unitName: selectedUnit.unitName,
+                      unitId: selectedUnit.unitId,
+                      bodyColor: selectedUnit.bodyColor,
+                      variation: selectedUnit.variation,
+                    });
                   }
-                >
-                  {isModalOpen ? "Allocate" : "Save"}
-                </button>
-
-                <button onClick={() => { setIsModalOpen(false); setEditAllocation(null); }}>
-                  Cancel
-                </button>
-              </div>
-
-            </div>
+                }
+              }}
+              required
+            >
+              <option value="">Select Unit</option>
+              {availableUnits.map((unit) => (
+                <option key={unit._id} value={unit.unitId}>
+                  {unit.unitName} - {unit.unitId} ({unit.bodyColor})
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          {/* ------------------ ASSIGN TO ------------------ */}
+          <div className="modal-form-group">
+            <label>
+              Assign To <span style={{ color: "red" }}>*</span>
+            </label>
+
+            <select
+              value={
+                isModalOpen ? newAllocation.assignedTo : editAllocation.assignedTo
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+
+                if (isModalOpen) {
+                  setNewAllocation((prev) => ({
+                    ...prev,
+                    assignedTo: value,
+                  }));
+                } else {
+                  setEditAllocation((prev) => ({
+                    ...prev,
+                    assignedTo: value,
+                  }));
+                }
+              }}
+              required
+            >
+              <option value="">Select Sales Agent</option>
+              {agents.map((agent) => (
+                <option key={agent._id} value={agent.name}>
+                  {agent.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+        </div>
+
+        {/* ------------------ BUTTONS ------------------ */}
+        <div className="modal-buttons">
+          <button
+            className="create-btn1"
+            onClick={() =>
+              isModalOpen
+                ? handleCreateAllocation()
+                : handleUpdateAllocation(editAllocation._id)
+            }
+          >
+            {isModalOpen ? "Allocate" : "Save"}
+          </button>
+
+          <button
+            className="cancel-btn1"
+            onClick={() => {
+              setIsModalOpen(false);
+              setEditAllocation(null);
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
     </div>
