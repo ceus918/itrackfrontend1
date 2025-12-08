@@ -187,7 +187,7 @@ const UnitAllocation = () => {
        {/* Modal */}
 {(isModalOpen || editAllocation) && (
   <div className="modal-overlay">
-    <div className="modal">
+    <div className="modal2">
       <p className="modaltitle">
         {isModalOpen ? "Allocate Unit" : "Edit Allocation"}
       </p>
