@@ -19,6 +19,9 @@ const UnitAllocation = () => {
   });
 
   const [editAllocation, setEditAllocation] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -108,6 +111,26 @@ const UnitAllocation = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentAllocations = allocations.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(allocations.length / itemsPerPage);
+
+  
+ 
+
+const fetchSalesAgent = () => {
+  axios.get("https://itrack-web-backend.onrender.com/api/getUsers")
+    .then(res => {
+      const driverList = res.data.filter(u => u.role?.toLowerCase() === "sales agent");
+      setAgents(driverList);
+    })
+    .catch(err => console.error(err));
+};
+
+  const filteredAgents =
+    agents?.filter((agent) =>
+      agent?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
+  
+  
+
 
   return (
     <div className="app">
@@ -242,41 +265,80 @@ const UnitAllocation = () => {
             </select>
           </div>
 
-          {/* ------------------ ASSIGN TO ------------------ */}
-          <div className="modal-form-group">
-            <label>
-              Assign To <span style={{ color: "red" }}>*</span>
-            </label>
+     
+          {/* ------------------ ASSIGN TO (Searchable) ------------------ */}
+<div className="modal-form-group">
+  <label>
+    Assign To <span style={{ color: "red" }}>*</span>
+  </label>
 
-            <select
-              value={
-                isModalOpen ? newAllocation.assignedTo : editAllocation.assignedTo
-              }
-              onChange={(e) => {
-                const value = e.target.value;
+  <div className="custom-select-container">
+    {/* Selected Value */}
+    <div
+      className="custom-select-box"
+      onClick={() => setSearchOpen(!searchOpen)}
+    >
+      {isModalOpen
+        ? newAllocation.assignedTo || "Select Sales Agent"
+        : editAllocation.assignedTo || "Select Sales Agent"}
+    </div>
 
-                if (isModalOpen) {
-                  setNewAllocation((prev) => ({
-                    ...prev,
-                    assignedTo: value,
-                  }));
-                } else {
-                  setEditAllocation((prev) => ({
-                    ...prev,
-                    assignedTo: value,
-                  }));
-                }
-              }}
-              required
-            >
-              <option value="">Select Sales Agent</option>
-              {agents.map((agent) => (
-                <option key={agent._id} value={agent.name}>
-                  {agent.name}
-                </option>
-              ))}
-            </select>
-          </div>
+    {/* Dropdown */}
+    {searchOpen && (
+      <div className="custom-select-dropdown">
+        {/* Search Input */}
+        <input
+          type="text"
+          className="custom-select-search"
+          placeholder="Search agent..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        {/* Filtered Options */}
+        <div className="custom-select-options">
+          {agents
+            .filter((agent) =>
+              (agent?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+
+            )
+            .map((agent) => (
+              <div
+                key={agent._id}
+                className="custom-select-option"
+                onClick={() => {
+                  if (isModalOpen) {
+                    setNewAllocation({
+                      ...newAllocation,
+                      assignedTo: agent.name,
+                    });
+                  } else {
+                    setEditAllocation({
+                      ...editAllocation,
+                      assignedTo: agent.name,
+                    });
+                  }
+
+                  setSearchOpen(false);
+                  setSearchTerm("");
+                }}
+              >
+                {agent.name}
+              </div>
+            ))}
+
+          {agents.filter((agent) =>
+            (agent?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+
+          ).length === 0 && (
+            <div className="no-results">No results found</div>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
 
         </div>
 

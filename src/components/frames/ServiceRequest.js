@@ -197,7 +197,7 @@ const [searchAgent, setSearchAgent] = useState("");
 
   
   const handleUpdateRequest = (id) => {
-  const { dateCreated, unitId, service, unitName, assignTo } = editRequest;
+  const { dateCreated, unitId, service, unitName, } = editRequest;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -205,7 +205,7 @@ const [searchAgent, setSearchAgent] = useState("");
     return;
   }
 
-  if (!dateCreated || !unitId || service.length === 0 || !unitName||!assignTo) {
+  if (!dateCreated || !unitId || service.length === 0 || !unitName) {
     alert("All fields are required.");
     return;
   }
@@ -630,7 +630,7 @@ const filteredAgents =
 </div>
 
 
-          <div className="modal-form-group">
+          {/* <div className="modal-form-group">
             <label>Status</label>
           <select
   value={editRequest.status}
@@ -644,63 +644,9 @@ const filteredAgents =
 </select>
 
 
-          </div>
+          </div> */}
 
-          <div className="modal-form-group">
-  <label>
-    Assign To <span style={{ color: "red" }}>*</span>
-  </label>
-
-  <div className="custom-select-container">
-
-    {/* Selected Value */}
-    <div
-      className="custom-select-box"
-      onClick={() => setSearchOpen(!searchOpen)}
-    >
-      {editRequest.assignTo || "Select Sales Agent"}
-    </div>
-
-    {/* Dropdown */}
-    {searchOpen && (
-      <div className="custom-select-dropdown">
-
-        {/* Search inside dropdown */}
-        <input
-          type="text"
-          className="custom-select-search"
-          placeholder="Search agent..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-
-        {/* Options */}
-        <div className="custom-select-options">
-          {filteredAgents.map((agent) => (
-            <div
-              key={agent._id}
-              className="custom-select-option"
-              onClick={() => {
-                setEditRequest({ ...editRequest, assignTo: agent.name });
-                setSearchOpen(false);
-                setSearchTerm("");
-              }}
-            >
-              {agent.name}
-            </div>
-          ))}
-
-          {filteredAgents.length === 0 && (
-            <div className="no-results">No results found</div>
-          )}
-        </div>
-      </div>
-    )}
-  </div>
-</div>
-
-
-
+        
 
         </div>
 
