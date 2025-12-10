@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import "../css/ServiceRequest.css";
+import dropdownIcon from "../icons/drop-down-arrow.png";
+
 
 const UnitAllocation = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -278,15 +280,23 @@ const fetchSalesAgent = () => {
       className="custom-select-box"
       onClick={() => setSearchOpen(!searchOpen)}
     >
-      {isModalOpen
-        ? newAllocation.assignedTo || "Select Sales Agent"
-        : editAllocation.assignedTo || "Select Sales Agent"}
+      <span>
+        {isModalOpen
+          ? newAllocation.assignedTo || "Select Sales Agent"
+          : editAllocation.assignedTo || "Select Sales Agent"}
+      </span>
+
+      {/* PNG Dropdown Icon */}
+      <img
+        src={dropdownIcon}
+        alt="dropdown"
+        className={`dropdown-icon ${searchOpen ? "open" : ""}`}
+      />
     </div>
 
     {/* Dropdown */}
     {searchOpen && (
       <div className="custom-select-dropdown">
-        {/* Search Input */}
         <input
           type="text"
           className="custom-select-search"
@@ -295,12 +305,12 @@ const fetchSalesAgent = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
 
-        {/* Filtered Options */}
         <div className="custom-select-options">
           {agents
             .filter((agent) =>
-              (agent?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-
+              (agent?.name || "")
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
             )
             .map((agent) => (
               <div
@@ -318,7 +328,6 @@ const fetchSalesAgent = () => {
                       assignedTo: agent.name,
                     });
                   }
-
                   setSearchOpen(false);
                   setSearchTerm("");
                 }}
@@ -328,8 +337,9 @@ const fetchSalesAgent = () => {
             ))}
 
           {agents.filter((agent) =>
-            (agent?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-
+            (agent?.name || "")
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
           ).length === 0 && (
             <div className="no-results">No results found</div>
           )}

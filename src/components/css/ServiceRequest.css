@@ -1256,3 +1256,28 @@ margin-right: 15px;
   padding: 10px;
   color: #888;
 }
+
+
+
+
+.custom-select-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.dropdown-icon {
+  width: 7px;
+  height: 6px;
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.dropdown-icon.open {
+  transform: rotate(180deg);
+  opacity: 1;
+}
