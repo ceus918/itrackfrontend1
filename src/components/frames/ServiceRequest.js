@@ -496,15 +496,23 @@ const filteredAgents =
     }}
   >
     <option value="">Select from Inventory</option>
-    {inventory.map((unit) => {
-      // Check if this unit is already used in requests
-      const isUsed = requests.some(req => req.unitId === unit.unitId);
-      return (
-        <option key={unit._id} value={unit.unitId} disabled={isUsed}>
-          {unit.unitName} ({unit.unitId}) {isUsed ? ' - Already In Proccess' : ''}
-        </option>
-      );
-    })}
+    {inventory
+  .filter(unit => unit.status === "Available") // ✅ ONLY AVAILABLE
+  .map((unit) => {
+    const isUsed = requests.some(req => req.unitId === unit.unitId);
+
+    return (
+      <option
+        key={unit._id}
+        value={unit.unitId}
+        disabled={isUsed}
+      >
+        {unit.unitName} ({unit.unitId})
+        {isUsed ? ' - Already In Process' : ''}
+      </option>
+    );
+  })}
+
   </select>
 </div>
 
@@ -1037,7 +1045,7 @@ const filteredAgents =
             </thead>
             <tbody>
                 <tr className="header-spacer-row"><td ></td></tr>
-             {visibleRequests.map((req) => (
+             {currentRequests.map((req) => (
 
                 <tr key={req._id}>
                   <td>{new Date(req.dateCreated).toLocaleDateString('en-CA')}</td>
@@ -1100,6 +1108,7 @@ const filteredAgents =
       )}
                 </tr>
               ))}
+
             </tbody>
           </table>
 

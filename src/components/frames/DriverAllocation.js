@@ -947,7 +947,7 @@ const saveRecent = (key, value) => {
               </thead>
 
                <tbody>
-    {visibleAllocations.map((item) => (
+    {currentAllocations.map((item) => (
 
       <tr 
         key={item._id} 
