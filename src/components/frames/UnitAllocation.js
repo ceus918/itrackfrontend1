@@ -148,7 +148,7 @@ const fetchSalesAgent = () => {
         {/* Add button */}
         <div className="user-management-header">
           <button className="create-btn" onClick={() => setIsModalOpen(true)}>
-            + Allocate Unit
+             Allocate Unit
           </button>
         </div>
 
