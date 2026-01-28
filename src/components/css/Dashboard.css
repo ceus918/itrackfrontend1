@@ -485,6 +485,8 @@
   min-height: 350px;     /* 🚀 Makes all 4 squares uniform */
   display: flex;
   flex-direction: column;
+  padding-right: 20px;
+  
 }
 
 
@@ -674,4 +676,43 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+}
+
+
+
+
+
+/* ============================= */
+/* HARD STOP OVERFLOW FIX        */
+/* ============================= */
+
+.dashboard-item {
+  min-width: 0;        /* 🔥 grid overflow fix */
+  overflow: hidden;
+  padding-right: 60px;
+}
+
+.table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.data-table th,
+.data-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+
+
+.table-container {
+  padding-right: 13px;   /* 👈 right spacing */
+  box-sizing: border-box;
 }
