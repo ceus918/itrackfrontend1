@@ -715,6 +715,7 @@ const handleChangePassword = () => {
             cx="50%"
             cy="50%"
             outerRadius={90}
+            innerRadius={35} 
             labelLine={false}
           >
             {stockData.map((entry, index) => (
