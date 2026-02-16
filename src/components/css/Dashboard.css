@@ -715,4 +715,5 @@
 .table-container {
   padding-right: 13px;   /* 👈 right spacing */
   box-sizing: border-box;
+  padding: auto;
 }

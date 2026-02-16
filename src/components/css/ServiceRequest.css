@@ -232,11 +232,13 @@ tbody tr td:last-child {
   background-color: #fefefe;
   padding: 12px;
   border-radius: 12px;
+  
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
   margin-top: 20px;
   margin-left: 20px;
   margin-right: 20px;
+  
 }
 
 .table-wrapper {
@@ -309,6 +311,7 @@ th, td {
   white-space: nowrap; /* Prevent line-breaks for neat columns */
   margin-left: 80px;
   padding-left: 30px;
+  
   
 }
 
@@ -1258,8 +1261,6 @@ margin-right: 15px;
 }
 
 
-
-
 .custom-select-box {
   display: flex;
   justify-content: space-between;
@@ -1280,4 +1281,28 @@ margin-right: 15px;
 .dropdown-icon.open {
   transform: rotate(180deg);
   opacity: 1;
+}
+
+.content{
+  padding-right: 40px;
+}
+
+
+
+.table-container {
+  width: 100%;
+}
+
+.table-container table {
+  width: 100%;
+  table-layout: fixed;   /* 🔥 Important for compression */
+}
+
+.table-container th,
+.table-container td {
+  padding: 10px;
+  text-align: left;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;   /* 🔥 Allows compression */
 }
