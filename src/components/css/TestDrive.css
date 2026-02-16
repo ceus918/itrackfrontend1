@@ -209,7 +209,7 @@ margin-right: 15px;
   background-color: #e60000;
   color: white;
   border: none;
-  padding: 9px 35px;
+  padding: 9px 33px;
   font-size: 12px;
   font-weight: bold;
   border-radius: 4px;
@@ -217,7 +217,7 @@ margin-right: 15px;
   transition: all 0.2s ease;
   margin-top: 40px;
   min-width: 80px;
-  height: 38px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,4 +261,22 @@ margin-right: 15px;
 
 .styled-select option:hover {
   background-color: #f2f2f2;
+}
+
+.testdrive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.testdrive-title {
+  margin: 0;        /* removes extra spacing */
+  font-size: 20px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.testdrive-btn-container {
+  margin-left: auto;   /* pushes button fully right */
 }
