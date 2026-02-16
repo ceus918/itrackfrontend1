@@ -1177,7 +1177,7 @@ const fetchUsers = () => {
 
   <div className="testdrive-spacer"></div>
 
-  <h3>Scheduled Test Drives</h3>
+  <h3 className='testdrive-title'>Scheduled Test Drives</h3>
   <div className="testdrive-table-container">
     <table>
       <thead>

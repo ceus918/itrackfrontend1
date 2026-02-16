@@ -17,8 +17,14 @@
   margin-top: 1rem;
   margin-bottom: 1rem;
   font-weight: 600;
-  text-align: center;
+  
   color: #333;
+}
+
+.testdrive-title{
+  text-align: left;
+  padding-left: 20px;
+  font-weight: 500;
 }
 
 /* Modal */
@@ -142,6 +148,7 @@
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
   margin-top: 20px;
+  
 }
 
 .testdrive-dropdown {
@@ -192,9 +199,6 @@ margin-right: 15px;
 
 
 
-
-
-
 .testdrive-btn-container {
 
   right: 0;
@@ -219,8 +223,6 @@ margin-right: 15px;
   justify-content: center;
   margin-left: auto; /* ✅ Moves button to the right */
 }
-
-
 
 
 
