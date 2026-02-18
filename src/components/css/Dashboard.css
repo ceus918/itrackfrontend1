@@ -506,9 +506,6 @@
 
 
 
-
-
-
 /* Overlay background */
 .profile-modal-overlay {
   position: fixed;
@@ -681,11 +678,6 @@
 
 
 
-
-/* ============================= */
-/* HARD STOP OVERFLOW FIX        */
-/* ============================= */
-
 .dashboard-item {
   min-width: 0;        /* 🔥 grid overflow fix */
   overflow: hidden;
@@ -715,5 +707,5 @@
 .table-container {
   padding-right: 13px;   /* 👈 right spacing */
   box-sizing: border-box;
-  padding: auto;
+  
 }

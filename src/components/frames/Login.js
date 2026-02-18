@@ -21,6 +21,8 @@ const Login = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
 
@@ -34,12 +36,12 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
+  setIsLoading(true);       // ✅ Start loading
+  setErrorMessage('');      // Optional: clear old errors
+
   axios.post("https://itrack-web-backend.onrender.com/api/login", loginInfo, {
     withCredentials: true
   })
-  // axios.post("http://localhost:8000/api/login", loginInfo, {
-  //   withCredentials: true
-  // })
     .then((res) => {
       if (res.data.success) {
         navigate('/dashboard');
@@ -48,11 +50,12 @@ const Login = () => {
       }
     })
     .catch((err) => {
-      console.error(err);  // ✅ LOG errors for debugging
+      console.error(err);
       setErrorMessage('Invalid email or password.');
+    })
+    .finally(() => {
+      setIsLoading(false);  // ✅ Stop loading
     });
-
-    
 };
 
   
@@ -98,7 +101,10 @@ const Login = () => {
             value={loginInfo.password}
             onChange={(e) => setLoginInfo({ ...loginInfo, password: e.target.value })}
           />
-          <button type="submit">Login</button>
+          <button type="submit" disabled={isLoading}>
+  {isLoading ? "Logging in..." : "Login"}
+</button>
+
           <p className="login-note">Log in to access your dashboard and manage vehicle services</p>
           {errorMessage && <p className="error-message">{errorMessage}</p>}
         </form>
