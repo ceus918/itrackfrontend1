@@ -63,7 +63,7 @@ const handleMarkReleased = (id) => {
   if (!confirmed) return; // User clicked Cancel
 
   // Prepare the payload
-  const payload = { releaseStatus: "Released" };
+  const payload = { releaseStatus: "Released to Customer" };
 
   axios.put(
     `https://itrack-web-backend.onrender.com/api/markAsReleased/${id}`,
