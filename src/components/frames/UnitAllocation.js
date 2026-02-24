@@ -20,13 +20,34 @@ const UnitAllocation = () => {
     assignedTo: "" 
   });
 
-  const [editAllocation, setEditAllocation] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
-const [searchTerm, setSearchTerm] = useState("");
-
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  const filteredRequests = allocations.filter((req) => {
+  const searchValue = searchTerm.toLowerCase();
+
+  return (
+    (req.unitId || "").toLowerCase().includes(searchValue) ||
+    (req.unitName || "").toLowerCase().includes(searchValue) ||
+    (req.assignedTo || "").toLowerCase().includes(searchValue)
+  );
+});
+
+  const indexOfLastRequest = currentPage * itemsPerPage;
+const indexOfFirstRequest = indexOfLastRequest - itemsPerPage;
+
+const currentAllocations = filteredRequests.slice(
+  indexOfFirstRequest,
+  indexOfLastRequest
+);
+
+const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+
+
+  const [editAllocation, setEditAllocation] = useState(null);
+
 
   useEffect(() => {
     fetchAllocations();
@@ -111,8 +132,7 @@ const [searchTerm, setSearchTerm] = useState("");
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAllocations = allocations.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(allocations.length / itemsPerPage);
+ 
 
   
  
@@ -189,23 +209,40 @@ const fetchSalesAgent = () => {
             </table>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination-wrapper">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>&laquo;</button>
+             {totalPages > 1 && (
+  <div className="pagination-wrapper">
+    <div className="pagination-info">
+      Showing {indexOfFirstRequest + 1} to {Math.min(indexOfLastRequest, filteredRequests.length)} of {filteredRequests.length} results
+    </div>
+    <div className="pagination">
+      <button
+        className="pagination-btn"
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+      >
+        &#171;
+      </button>
 
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={i + 1 === currentPage ? "active-page" : ""}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+      {Array.from({ length: totalPages }, (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => setCurrentPage(i + 1)}
+          className={`pagination-btn ${currentPage === i + 1 ? 'active-page' : ''}`}
+        >
+          {i + 1}
+        </button>
+      ))}
 
-                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>&raquo;</button>
-              </div>
-            )}
+      <button
+        className="pagination-btn"
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+      >
+        &#187;
+      </button>
+    </div>
+  </div>
+)}
           </div>
         </div>
 
