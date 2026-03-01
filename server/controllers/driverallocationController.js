@@ -45,7 +45,7 @@ const createAllocation  = async (req, res) => {
       resource: 'DriverAllocation',
       resourceId: allocation._id,
       performedBy: allocatedBy,
-      details: { newAllocation: allocation }
+      details: { after: req.body }
     });
     res.json(allocation);
   } catch (err) {
@@ -67,13 +67,17 @@ const updateAllocation = async (req, res) => {
       { ...req.body, allocatedBy },
       { new: true }
     );
-    // Build a human-readable change summary (exclude _id, createdAt, updatedAt)
+    // Build a human-readable change summary and only log changed fields
     let changes = [];
     const excludeFields = ['_id', 'createdAt', 'updatedAt', '__v'];
+    const beforeChanges = {};
+    const afterChanges = {};
     if (allocation && updatedAllocation) {
       Object.keys(req.body).forEach(key => {
         if (!excludeFields.includes(key) && allocation[key] !== updatedAllocation[key]) {
           changes.push(`${key} changed from ${allocation[key]} to ${updatedAllocation[key]}`);
+          beforeChanges[key] = allocation[key];
+          afterChanges[key] = updatedAllocation[key];
         }
       });
     }
@@ -84,8 +88,8 @@ const updateAllocation = async (req, res) => {
       performedBy: allocatedBy,
       details: {
         summary: changes.length ? changes.join('; ') : 'No changes detected',
-        before: allocation,
-        after: updatedAllocation
+        before: Object.keys(beforeChanges).length > 0 ? beforeChanges : null,
+        after: Object.keys(afterChanges).length > 0 ? afterChanges : null
       }
     });
     // If status changed to "Completed"

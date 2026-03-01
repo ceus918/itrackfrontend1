@@ -3,10 +3,14 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import '../css/TestDrive.css';
 import { getCurrentUser } from '../getCurrentUser';
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 const TestDrive = () => {
   const [vehicles, setVehicles] = useState([]);
   const [testDrives, setTestDrives] = useState([]);
+  const { toast, showToast, hideToast } = useToast();
+  
   const [formData, setFormData] = useState({
     vehicleId: '',
     date: '',
@@ -100,9 +104,11 @@ const fileInputRef = React.useRef(null);
       setSuccess('Test drive scheduled successfully!');
       setFormData({ vehicleId: '', date: '', time: '', name: '', contact: '' });
       fetchTestDrives(); // Refresh schedule list
+      showToast(`Test drive scheduled for ${formData.name} successfully!`, 'success');
     } catch (error) {
       console.error(error);
       setSuccess('Failed to schedule test drive.');
+      showToast('Failed to schedule test drive', 'error');
     }
   };
 
@@ -118,9 +124,11 @@ const fileInputRef = React.useRef(null);
       .then(() => {
         setSuccess('Test drive deleted successfully.');
         fetchTestDrives(); // refresh the list
+        showToast('Test drive deleted successfully!', 'success');
       })
       .catch(() => {
         setSuccess('Failed to delete test drive.');
+        showToast('Failed to delete test drive', 'error');
       });
   }
 };
@@ -235,24 +243,24 @@ const handleAddStockSubmit = async (e) => {
   const { unitName2, unitId2, bodyColor2, variation2 } = newStock;
   const conductionError = validateConductionNumber(unitId2);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
 
   if (!unitName2 || !unitId2 || !bodyColor2 || !variation2) {
-    alert('All fields are required!');
+    showToast('All fields are required!', 'error');
     return;
   }
 
   try {
     await axios.post('https://itrack-web-backend.onrender.com/api/createTestDriveInv', newStock);
-    alert('✅ Test drive unit added successfully!');
+    showToast('Test drive unit added successfully!', 'success');
     setNewStock({ unitName2: '', unitId2: '', bodyColor2: '', variation2: '' });
     setIsAddModalOpen(false);
     fetchStock(); // refresh list
   } catch (error) {
     console.error('Error adding test drive unit:', error);
-    alert('❌ Failed to add test drive unit.');
+    showToast('Failed to add test drive unit', 'error');
   }
 };
 
@@ -272,10 +280,10 @@ const handleDeleteStock = (id) => {
 
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteTestDriveInv/${id}`)
     .then(() => {
-      alert('✅ Deleted successfully!');
+      showToast('Test drive unit deleted successfully!', 'success');
       fetchStock();
     })
-    .catch(() => alert('❌ Failed to delete.'));
+    .catch(() => showToast('Failed to delete test drive unit', 'error'));
 };
 
 
@@ -310,7 +318,7 @@ const handleEditStockSubmit = async (e) => {
   }
 
   if (!unitName2 || !unitId2 || !bodyColor2 || !variation2) {
-    alert('All fields are required!');
+    showToast('All fields are required!', 'error');
     return;
   }
 
@@ -319,12 +327,12 @@ const handleEditStockSubmit = async (e) => {
       `https://itrack-web-backend.onrender.com/api/updateTestDriveInv/${editStock._id}`,
       editStock
     );
-    alert('✅ Test drive unit updated successfully!');
+    showToast('Test drive unit updated successfully!', 'success');
     setIsEditModalOpen(false);
     fetchStock(); // Refresh list
   } catch (error) {
     console.error('Error updating test drive unit:', error);
-    alert('❌ Failed to update test drive unit.');
+    showToast('Failed to update test drive unit', 'error');
   }
 };
 
@@ -510,6 +518,7 @@ const fetchUsers = () => {
 
   return (
     <div className="app">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="main">
         <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

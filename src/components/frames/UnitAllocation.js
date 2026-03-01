@@ -3,6 +3,8 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import "../css/ServiceRequest.css";
 import dropdownIcon from "../icons/drop-down-arrow.png";
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 
 const UnitAllocation = () => {
@@ -10,6 +12,8 @@ const UnitAllocation = () => {
   const [allocations, setAllocations] = useState([]);
   const [agents, setAgents] = useState([]);
   const [availableUnits, setAvailableUnits] = useState([]);
+
+  const { toast, showToast, hideToast } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAllocation, setNewAllocation] = useState({
@@ -87,7 +91,7 @@ const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
   // CREATE allocation
   const handleCreateAllocation = () => {
     if (!newAllocation.unitId || !newAllocation.assignedTo) {
-      alert("All fields are required!");
+      showToast("All fields are required!", 'error');
       return;
     }
 
@@ -103,8 +107,12 @@ const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
         });
         setIsModalOpen(false);
         setCurrentPage(1);
+        showToast(`Unit allocated to ${newAllocation.assignedTo} successfully!`, 'success');
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        showToast('Failed to allocate unit', 'error');
+      });
   };
 
   // UPDATE allocation
@@ -113,8 +121,12 @@ const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
       .then(() => {
         fetchAllocations();
         setEditAllocation(null);
+        showToast('Allocation updated successfully!', 'success');
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        showToast('Failed to update allocation', 'error');
+      });
   };
 
   // DELETE allocation
@@ -125,8 +137,12 @@ const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
       .then(() => {
         fetchAllocations();
         setCurrentPage(1);
+        showToast('Allocation deleted successfully!', 'success');
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        showToast('Failed to delete allocation', 'error');
+      });
   };
 
   // Pagination logic
@@ -156,6 +172,7 @@ const fetchSalesAgent = () => {
 
   return (
     <div className="app">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="main">
         

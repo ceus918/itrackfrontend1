@@ -43,7 +43,7 @@ const createUser = async (req, res) => {
       resource: 'User',
       resourceId: user._id,
       performedBy: req.session?.user?.name || 'Unknown',
-      details: { newUser: user }
+      details: { after: req.body }
     });
     res.json(user);
   } catch (err) {
@@ -54,13 +54,28 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    const before = await UserModel.findById(req.params.id);
     const user = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    // Only log fields that changed
+    const beforeChanges = {};
+    const afterChanges = {};
+    Object.keys(req.body).forEach(key => {
+      if (before[key] !== user[key]) {
+        beforeChanges[key] = before[key];
+        afterChanges[key] = user[key];
+      }
+    });
+    
     await logAudit({
       action: 'update',
       resource: 'User',
       resourceId: req.params.id,
       performedBy: req.session?.user?.name || 'Unknown',
-      details: { updatedUser: user }
+      details: {
+        before: Object.keys(beforeChanges).length > 0 ? beforeChanges : null,
+        after: Object.keys(afterChanges).length > 0 ? afterChanges : null
+      }
     });
     res.json(user);
   } catch (err) {

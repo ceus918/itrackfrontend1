@@ -8,6 +8,8 @@ import addIcon from '../icons/add.png';
 import logo from '../icons/I-track logo.png'; 
 import downloadIcon from '../icons/download2.png';
 import { getCurrentUser } from '../getCurrentUser';
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 const Inventory = () => {
   const [stock, setStock] = useState([]);
@@ -18,7 +20,8 @@ const Inventory = () => {
   variation: '',
   status: 'In Stockyard'   // default
 });
-
+  
+  const { toast, showToast, hideToast } = useToast();
 
   const [editStock, setEditStock] = useState(null);
 
@@ -98,12 +101,12 @@ const validateConductionNumber = (value) => {
 
     const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
   
     if (!unitName || !unitId || !bodyColor || !variation) {
-      alert('All fields are required!');
+      showToast('All fields are required!', 'error');
       return;
     }
   
@@ -119,10 +122,11 @@ const validateConductionNumber = (value) => {
 });
 
         setIsCreateModalOpen(false);
+        showToast(`${newStock.unitName} has been added successfully!`, 'success');
       })
       .catch((error) => {
   console.error("Error creating stock:", error.response || error);
-  alert(error.response?.data?.message || "Failed to add stock");
+  showToast(error.response?.data?.message || "Failed to add stock", 'error');
 });
 
   };
@@ -134,11 +138,11 @@ const validateConductionNumber = (value) => {
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
   if (!unitName || !unitId || !bodyColor || !variation || !editStock.status) {
-  alert('All fields are required!');
+  showToast('All fields are required!', 'error');
   return;
 }
 
@@ -158,8 +162,12 @@ const validateConductionNumber = (value) => {
       ]);
       fetchStock();
       setEditStock(null);
+      showToast(`${editStock.unitName} has been updated successfully!`, 'success');
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      console.log(error);
+      showToast('Failed to update stock', 'error');
+    });
 };
 
 
@@ -188,11 +196,11 @@ const validateConductionNumber = (value) => {
         }
       ]);
       fetchStock();
-      alert(`"${deletedStock.unitName}" has been successfully deleted.`);
+      showToast(`"${deletedStock.unitName}" has been successfully deleted.`, 'success');
     })
     .catch((error) => {
       console.error(error);
-      alert('Failed to delete stock. Please try again.');
+      showToast('Failed to delete stock. Please try again.', 'error');
     });
 };
 
@@ -545,6 +553,7 @@ const fetchSalesAgent = () => {
 
   return (
     <div className="app">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="main">

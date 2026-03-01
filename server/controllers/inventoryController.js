@@ -41,7 +41,7 @@ const createStock = async (req, res) => {
       resource: 'Inventory',
       resourceId: stock._id,
       performedBy: req.session?.user?.name || 'Unknown',
-      details: { newStock: stock }
+      details: { after: req.body }
     });
     res.json(stock);
   } catch (err) {
@@ -54,12 +54,16 @@ const updateStock = async (req, res) => {
   try {
     const before = await InventoryModel.findById(req.params.id);
     const stock = await InventoryModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    // Build a human-readable change summary
+    // Build a human-readable change summary and only log changed fields
     let changes = [];
+    const beforeChanges = {};
+    const afterChanges = {};
     if (before && stock) {
       Object.keys(req.body).forEach(key => {
         if (before[key] !== stock[key]) {
           changes.push(`${key} changed from ${before[key]} to ${stock[key]}`);
+          beforeChanges[key] = before[key];
+          afterChanges[key] = stock[key];
         }
       });
     }
@@ -70,8 +74,8 @@ const updateStock = async (req, res) => {
       performedBy: req.session?.user?.name || 'Unknown',
       details: {
         summary: changes.length ? changes.join('; ') : 'No changes detected',
-        before,
-        after: stock
+        before: Object.keys(beforeChanges).length > 0 ? beforeChanges : null,
+        after: Object.keys(afterChanges).length > 0 ? afterChanges : null
       }
     });
     res.json(stock);

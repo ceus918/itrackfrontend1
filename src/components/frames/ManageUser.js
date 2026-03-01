@@ -8,9 +8,13 @@ import hideIcon from '../icons/hide.png';
 import showIcon from '../icons/show.png';
 import { getCurrentUser } from '../getCurrentUser';
 import AuditTrailTab from './AuditTrailTab';
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 const ManageUser = () => {
   const [user, setUser] = useState([]);
+  const { toast, showToast, hideToast } = useToast();
+  
   const [newUser, setNewUser] = useState({
     name: '',
     phoneno: '',
@@ -89,24 +93,24 @@ const ManageUser = () => {
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteUser/${id}`)
     .then(() => {
       fetchUsers();
-      alert(`"${deletedUser.name}" has been successfully deleted.`);
+      showToast(`"${deletedUser.name}" has been successfully deleted.`, 'success');
     })
     .catch((error) => {
       console.error(error);
-      alert('Failed to delete user. Please try again.');
+      showToast('Failed to delete user. Please try again.', 'error');
     });
 };
 
 
   const handleCreateUser = () => {
   if (!newUser.name || !newUser.phoneno || !newUser.email || !newUser.password || !newUser.role) {
-    alert("All fields are required!");
+    showToast("All fields are required!", 'error');
     return;
   }
 
   // Password validation
   if (newUser.password.length < 8) {
-    alert("Password must be at least 8 characters long.");
+    showToast("Password must be at least 8 characters long.", 'error');
     return;
   }
 
@@ -115,12 +119,12 @@ const ManageUser = () => {
   const duplicatePhone = user.find(u => u.phoneno === newUser.phoneno);
 
   if (duplicateEmail) {
-    alert("Email already exists. Please use a different email.");
+    showToast("Email already exists. Please use a different email.", 'error');
     return;
   }
 
   if (duplicatePhone) {
-    alert("Phone number already exists. Please use a different phone number.");
+    showToast("Phone number already exists. Please use a different phone number.", 'error');
     return;
   }
 
@@ -128,10 +132,11 @@ const ManageUser = () => {
     .then(() => {
       fetchUsers();
       setNewUser({ name: '', phoneno: '', email: '', password: '', role: '' });
-      setIsCreateModalOpen(false); 
+      setIsCreateModalOpen(false);
+      showToast(`User ${newUser.name} created successfully!`, 'success');
     })
     .catch((error) => {
-      alert("Failed to create user. Please check your input and try again.");
+      showToast("Failed to create user. Please check your input and try again.", 'error');
       console.log(error);
     });
 };
@@ -140,13 +145,13 @@ const ManageUser = () => {
   
   const handleUpdateUser = (id) => {
   if (!editUser.name || !editUser.phoneno || !editUser.email || !editUser.password || !editUser.role) {
-    alert("All fields are required!");
+    showToast("All fields are required!", 'error');
     return;
   }
 
   // Password validation
   if (editUser.password.length < 8) {
-    alert("Password must be at least 8 characters long.");
+    showToast("Password must be at least 8 characters long.", 'error');
     return;
   }
 
@@ -155,12 +160,12 @@ const ManageUser = () => {
   const duplicatePhone = user.find(u => u.phoneno === editUser.phoneno && u._id !== id);
 
   if (duplicateEmail) {
-    alert("Email already exists. Please use a different email.");
+    showToast("Email already exists. Please use a different email.", 'error');
     return;
   }
 
   if (duplicatePhone) {
-    alert("Phone number already exists. Please use a different phone number.");
+    showToast("Phone number already exists. Please use a different phone number.", 'error');
     return;
   }
 
@@ -168,8 +173,12 @@ const ManageUser = () => {
     .then(() => {
       fetchUsers();
       setEditUser(null);
+      showToast(`User ${editUser.name} updated successfully!`, 'success');
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      console.log(error);
+      showToast('Failed to update user', 'error');
+    });
 };
 
 
@@ -313,23 +322,23 @@ useEffect(() => {
 
   const handleChangePassword = () => {
   if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-    alert("All fields are required.");
+    showToast("All fields are required.", 'error');
     return;
   }
 
   if (passwordData.newPassword !== passwordData.confirmPassword) {
-    alert("New password and confirm password do not match.");
+    showToast("New password and confirm password do not match.", 'error');
     return;
   }
 
   if (passwordData.newPassword.length < 8) {
-    alert("New password must be at least 8 characters long.");
+    showToast("New password must be at least 8 characters long.", 'error');
     return;
   }
 
   // ✅ Check if entered current password matches the user's existing one
   if (passwordData.currentPassword !== fullUser.password) {
-    alert("Incorrect current password. Please try again.");
+    showToast("Incorrect current password. Please try again.", 'error');
     return;
   }
 
@@ -340,14 +349,14 @@ useEffect(() => {
       password: passwordData.newPassword, // only change password
     })
     .then(() => {
-      alert("Password updated successfully!");
+      showToast("Password updated successfully!", 'success');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setIsPasswordModalOpen(false);
       fetchUsers(); // refresh user list if needed
     })
     .catch((error) => {
       console.error("Failed to update password:", error);
-      alert("Error updating password. Please try again.");
+      showToast("Error updating password. Please try again.", 'error');
     });
 };
 
@@ -359,6 +368,7 @@ useEffect(() => {
   return (
     <>
       <div className="app">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <div className="main">
            <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

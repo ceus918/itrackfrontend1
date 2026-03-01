@@ -10,6 +10,8 @@ import { getCurrentUser } from '../getCurrentUser';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 
 
@@ -22,6 +24,9 @@ const ServiceRequest = () => {
     status: '',
     assignTo: ''
   });
+  
+  const { toast, showToast, hideToast } = useToast();
+  
   const [editRequest, setEditRequest] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -170,7 +175,7 @@ const [searchAgent, setSearchAgent] = useState("");
   const { dateCreated, unitId, service, unitName } = newRequest;
 
   if (!dateCreated || !unitId || service.length === 0 || !unitName) {
-    alert("All fields are required.");
+    showToast("All fields are required.", 'error');
     return;
   }
 
@@ -189,8 +194,12 @@ const [searchAgent, setSearchAgent] = useState("");
         status: ''
       });
       setIsCreateModalOpen(false);
+      showToast(`Service request for ${unitName} has been created successfully!`, 'success');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      showToast('Failed to create service request', 'error');
+    });
 };
 
 
@@ -201,12 +210,12 @@ const [searchAgent, setSearchAgent] = useState("");
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
 
   if (!dateCreated || !unitId || service.length === 0 || !unitName) {
-    alert("All fields are required.");
+    showToast("All fields are required.", 'error');
     return;
   }
 
@@ -214,8 +223,12 @@ const [searchAgent, setSearchAgent] = useState("");
     .then(() => {
       fetchRequests();
       setEditRequest(null);
+      showToast(`Service request for ${unitName} has been updated successfully!`, 'success');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      showToast('Failed to update service request', 'error');
+    });
 };
 
   
@@ -236,11 +249,11 @@ const [searchAgent, setSearchAgent] = useState("");
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteRequest/${id}`, { withCredentials: true })
     .then(() => {
       fetchRequests();
-      alert(`Request for "${deletedRequest.unitName}" has been successfully deleted.`);
+      showToast(`Request for "${deletedRequest.unitName}" has been successfully deleted.`, 'success');
     })
     .catch((err) => {
       console.error(err);
-      alert('Failed to delete request. Please try again.');
+      showToast('Failed to delete request. Please try again.', 'error');
     });
 };
 
@@ -467,6 +480,7 @@ const filteredAgents =
 
   return (
     <div className="app">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
       {/* Create Modal */}
       {isCreateModalOpen && !['Sales Agent', 'Manager', 'Supervisor'].includes(userRole) && (
   <div className="modal-overlay">

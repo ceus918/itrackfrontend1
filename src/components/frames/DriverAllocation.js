@@ -12,12 +12,16 @@ import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
 import ViewShipment from "./ViewShipment"; // <-- add this
 import { GoogleMap, Marker, useJsApiLoader, DirectionsService, DirectionsRenderer,Autocomplete } from '@react-google-maps/api';
+import Toast from '../Toast';
+import { useToast } from '../useToast';
 
 
 const DriverAllocation = () => {
   const [allocation, setAllocations] = useState([]);
   const [isViewShipmentOpen, setIsViewShipmentOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  
+  const { toast, showToast, hideToast } = useToast();
   
   const [newAllocation, setNewAllocation] = useState({
   unitName: "",
@@ -126,7 +130,7 @@ const availableUnits = inventory.filter(
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
 
@@ -139,13 +143,13 @@ const availableUnits = inventory.filter(
     !deliveryDestination?.address ||
     !pickupLocation?.address
   ) {
-    alert("All fields are required.");
+    showToast("All fields are required.", 'error');
     return;
   }
 
   const isAlreadyAllocated = allocation.some(a => a.unitId === unitId);
   if (isAlreadyAllocated) {
-    alert("This unit is already allocated to a driver.");
+    showToast("This unit is already allocated to a driver.", 'error');
     return;
   }
 
@@ -173,8 +177,12 @@ const availableUnits = inventory.filter(
     });
 
     setIsCreateModalOpen(false);
+    showToast(`${unitName} allocated to ${assignedDriver} successfully!`, 'success');
   })
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.log(err);
+    showToast('Failed to create allocation', 'error');
+  });
 };
 
 
@@ -186,12 +194,12 @@ const availableUnits = inventory.filter(
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
-    alert(conductionError);
+    showToast(conductionError, 'error');
     return;
   }
 
   if (!unitName || !unitId || !bodyColor || !variation || !assignedDriver) {
-    alert("All fields are required.");
+    showToast("All fields are required.", 'error');
     return;
   }
 
@@ -203,8 +211,12 @@ const availableUnits = inventory.filter(
   .then(() => {
     fetchAllocations();
     setEditAllocation(null);
+    showToast(`Allocation updated successfully!`, 'success');
   })
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.log(err);
+    showToast('Failed to update allocation', 'error');
+  });
 };
 
 
@@ -225,11 +237,11 @@ const availableUnits = inventory.filter(
   axios.delete(`https://itrack-web-backend.onrender.com/api/deleteAllocation/${id}`, { withCredentials: true })
     .then(() => {
       fetchAllocations();
-      alert(`"${deletedAllocation.unitName}" has been successfully deleted.`);
+      showToast(`"${deletedAllocation.unitName}" has been successfully deleted.`, 'success');
     })
     .catch((err) => {
       console.error(err);
-      alert('Failed to delete allocation. Please try again.');
+      showToast('Failed to delete allocation. Please try again.', 'error');
     });
 };
 
@@ -606,6 +618,7 @@ const saveRecent = (key, value) => {
 
   return (
     <div className="app">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="main">
         <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

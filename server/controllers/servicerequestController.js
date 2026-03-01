@@ -129,12 +129,16 @@ const getInProgressRequests = (req, res) => {
         serviceTime: predictedMinutes // save prediction
       });
       const request = await newRequest.save();
+      const auditDetails = { ...req.body };
+      if (predictedMinutes !== null) {
+        auditDetails.serviceTime = predictedMinutes;
+      }
       await logAudit({
         action: 'create',
         resource: 'ServiceRequest',
         resourceId: request._id,
         performedBy: preparedBy,
-        details: { newRequest: request }
+        details: { after: auditDetails }
       });
       res.json(request);
     } catch (err) {
@@ -201,12 +205,25 @@ const updateRequest = async (req, res) => {
       });
     }
 
+    // Only log fields that changed
+    const beforeChanges = {};
+    const afterChanges = {};
+    Object.keys(req.body).forEach(key => {
+      if (request[key] !== updatedRequest[key]) {
+        beforeChanges[key] = request[key];
+        afterChanges[key] = updatedRequest[key];
+      }
+    });
+
     await logAudit({
       action: 'update',
       resource: 'ServiceRequest',
       resourceId: req.params.id,
       performedBy: preparedBy,
-      details: { updatedRequest }
+      details: {
+        before: Object.keys(beforeChanges).length > 0 ? beforeChanges : null,
+        after: Object.keys(afterChanges).length > 0 ? afterChanges : null
+      }
     });
     res.json(updatedRequest);
   } catch (err) {
