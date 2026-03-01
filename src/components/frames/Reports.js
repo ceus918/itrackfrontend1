@@ -781,13 +781,15 @@ const fetchUsers = () => {
     <img src={downloadIcon} alt="Download" className="button-icon" />
   </button>
 
-  {/* ✅ NEW BUTTON HERE */}
-<button 
-  className="audit-btn"
-  onClick={() => navigate("/audittrail")}
->
-  Go to Audit Trail
-</button>
+  {/* ✅ NEW BUTTON HERE - Only show for Admin */}
+  {fullUser && fullUser.role === "Admin" && (
+    <button 
+      className="audit-btn"
+      onClick={() => navigate("/audittrail")}
+    >
+      Go to Audit Trail
+    </button>
+  )}
 
 </div>
 

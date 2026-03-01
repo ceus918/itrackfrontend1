@@ -36,6 +36,22 @@ const AuditTrail = () => {
 
   if (loading) return <div>Loading audit trail...</div>;
 
+  // Utility: mask sensitive fields
+  const maskSensitiveFields = (obj) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+    
+    const sensitiveFields = ['password', 'resetPasswordToken', 'resetPasswordExpires'];
+    const masked = { ...obj };
+    
+    sensitiveFields.forEach(field => {
+      if (masked[field]) {
+        masked[field] = '***********';
+      }
+    });
+    
+    return masked;
+  };
+
   // Utility: compare before & after, return only changed fields
   const getChanges = (before, after) => {
     if (!before || !after) return [];
@@ -130,22 +146,23 @@ const AuditTrail = () => {
     if (log.action.toLowerCase() === "update" && changes.length > 0) {
       return (
         <div style={{ fontSize: 12 }}>
-          {changes.map((c, i) => (
-            <div key={i} style={{ marginBottom: 1 }}>
-              <strong>{c.field}:</strong>{" "}
-              <span style={{ color: "red" }}>
-                {typeof c.before === "object"
-                  ? JSON.stringify(c.before, null, 1)
-                  : c.before}
-              </span>{" "}
-              →{" "}
-              <span style={{ color: "green" }}>
-                {typeof c.after === "object"
-                  ? JSON.stringify(c.after, null, 1)
-                  : c.after}
-              </span>
-            </div>
-          ))}
+          {changes.map((c, i) => {
+            const beforeVal = c.field === 'password' ? '***********' : (typeof c.before === "object" ? JSON.stringify(c.before, null, 1) : c.before);
+            const afterVal = c.field === 'password' ? '***********' : (typeof c.after === "object" ? JSON.stringify(c.after, null, 1) : c.after);
+            
+            return (
+              <div key={i} style={{ marginBottom: 1 }}>
+                <strong>{c.field}:</strong>{" "}
+                <span style={{ color: "red" }}>
+                  {beforeVal}
+                </span>{" "}
+                →{" "}
+                <span style={{ color: "green" }}>
+                  {afterVal}
+                </span>
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -154,7 +171,7 @@ const AuditTrail = () => {
     if (log.action.toLowerCase() === "create" && log.details?.after) {
       return (
         <div style={{ fontSize: 12, color: "green" }}>
-          <strong>Created:</strong> {JSON.stringify(log.details.after, null, 2)}
+          <strong>Created:</strong> {JSON.stringify(maskSensitiveFields(log.details.after), null, 2)}
         </div>
       );
     }
@@ -163,7 +180,7 @@ const AuditTrail = () => {
     if (log.action.toLowerCase() === "delete" && log.details?.before) {
       return (
         <div style={{ fontSize: 12, color: "red" }}>
-          <strong>Deleted:</strong> {JSON.stringify(log.details.before, null, 2)}
+          <strong>Deleted:</strong> {JSON.stringify(maskSensitiveFields(log.details.before), null, 2)}
         </div>
       );
     }
