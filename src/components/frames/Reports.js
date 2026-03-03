@@ -901,7 +901,7 @@ const fetchUsers = () => {
           <th>Conduction Number</th>
           <th>Body Color</th>
           <th>Variation</th>
-          <th>Quantity</th>
+          {/* <th>Quantity</th> */}
           <th>Date Added</th>
         </tr>
       </thead>
@@ -912,7 +912,7 @@ const fetchUsers = () => {
             <td>{item.unitId}</td>
             <td>{item.bodyColor}</td>
             <td>{item.variation}</td>
-            <td>{item.quantity}</td>
+            {/* <td>{item.quantity}</td> */}
             <td>{new Date(item.createdAt).toLocaleDateString()}</td>
           </tr>
         ))}

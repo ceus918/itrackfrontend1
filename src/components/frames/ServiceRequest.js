@@ -12,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 import downloadIcon from '../icons/download2.png';
 import Toast from '../Toast';
 import { useToast } from '../useToast';
+import NotificationService from '../../utils/notificationService';
 
 
 
@@ -22,7 +23,9 @@ const ServiceRequest = () => {
     unitId: '',
     service: [],
     status: '',
-    assignTo: ''
+    assignTo: '',
+    customerName: '',
+    customerPhone: ''
   });
   
   const { toast, showToast, hideToast } = useToast();
@@ -40,6 +43,12 @@ const ServiceRequest = () => {
   const [fullUser, setFullUser] = useState(null);
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState('');
+  const [smsModalOpen, setSmsModalOpen] = useState(false);
+  const [smsData, setSmsData] = useState({
+    customerName: '',
+    customerPhone: ''
+  });
+  const [releasingRequestId, setReleasingRequestId] = useState(null);
   const [profileData, setProfileData] = useState({
   name: fullUser?.name || '',
   phoneno: fullUser?.phoneno || '',
@@ -191,7 +200,9 @@ const [searchAgent, setSearchAgent] = useState("");
         unitId: '',
         unitName: '',
         service: [],
-        status: ''
+        status: '',
+        customerName: '',
+        customerPhone: ''
       });
       setIsCreateModalOpen(false);
       showToast(`Service request for ${unitName} has been created successfully!`, 'success');
@@ -206,7 +217,7 @@ const [searchAgent, setSearchAgent] = useState("");
 
   
   const handleUpdateRequest = (id) => {
-  const { dateCreated, unitId, service, unitName, } = editRequest;
+  const { dateCreated, unitId, service, unitName, customerName, customerPhone } = editRequest;
 
   const conductionError = validateConductionNumber(unitId);
   if (conductionError) {
@@ -214,7 +225,7 @@ const [searchAgent, setSearchAgent] = useState("");
     return;
   }
 
-  if (!dateCreated || !unitId || service.length === 0 || !unitName) {
+  if (!dateCreated || !unitId || service.length === 0 || !unitName || !customerName || !customerPhone) {
     showToast("All fields are required.", 'error');
     return;
   }
@@ -478,6 +489,90 @@ const filteredAgents =
 
 
 
+const handleSMSRelease = async () => {
+  // Validate SMS data
+  if (!smsData.customerName || !smsData.customerPhone) {
+    showToast('Customer name and phone are required for SMS notification', 'error');
+    return;
+  }
+
+  console.log('📱 SMS Release initiated for:', {
+    customerName: smsData.customerName,
+    customerPhone: smsData.customerPhone,
+    unitName: editRequest.unitName,
+    unitId: editRequest.unitId
+  });
+
+  try {
+    // Update request with customer data and mark as released
+    const updated = {
+      ...editRequest,
+      status: "Completed",
+      customerName: smsData.customerName,
+      customerPhone: smsData.customerPhone
+    };
+
+    // First, update the request
+    console.log('🔄 Updating service request...');
+    await axios.put(
+      `https://itrack-web-backend.onrender.com/api/updateRequest/${releasingRequestId}`,
+      updated,
+      { withCredentials: true }
+    );
+    console.log('✅ Service request updated successfully');
+
+    // Then send SMS notification using NotificationService
+    try {
+      console.log('📤 Sending SMS notification to:', smsData.customerPhone);
+      
+      const result = await NotificationService.notifyReadyForRelease(
+        smsData.customerPhone,
+        smsData.customerName,
+        {
+          unitId: editRequest.unitId,
+          unitName: editRequest.unitName
+        }
+      );
+
+      console.log('📨 SMS Notification Result:', result);
+
+      if (result.success && result.smsSent) {
+        console.log('✅ SMS sent successfully to', smsData.customerPhone);
+        showToast("Vehicle marked as Released and SMS sent successfully! ✓", 'success');
+      } else if (result.success && !result.smsSent) {
+        // Service temporarily unavailable but vehicle is still released
+        const toastMsg = result.message.includes('temporarily unavailable') 
+          ? "Vehicle released! ⚠️ SMS service temporarily down - will retry later"
+          : "Vehicle released! ⚠️ " + result.message;
+        console.warn('⚠️ SMS notification status:', result.message);
+        showToast(toastMsg, 'success');
+      } else {
+        // Should not reach here, but as fallback
+        console.warn('⚠️ SMS notification failed:', result.message);
+        showToast("Vehicle released! ⚠️ " + result.message, 'warning');
+      }
+    } catch (smsErr) {
+      console.error('❌ SMS notification failed:', {
+        error: smsErr.message,
+        phone: smsData.customerPhone
+      });
+      showToast("Vehicle marked as Released! (SMS notification service unavailable)", 'warning');
+    }
+
+    // Close modals and refresh
+    setEditRequest(null);
+    setSmsModalOpen(false);
+    setReleasingRequestId(null);
+    setSmsData({ customerName: '', customerPhone: '' });
+    fetchRequests();
+  } catch (err) {
+    console.error('❌ Error marking as released:', err);
+    showToast('Failed to mark vehicle as released: ' + (err.response?.data?.message || err.message), 'error');
+  }
+};
+
+
+
   return (
     <div className="app">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} duration={toast.duration} />}
@@ -580,8 +675,6 @@ const filteredAgents =
             </div>
           </div>
 
-          
-
         </div>
 
         {/* Buttons */}
@@ -651,6 +744,36 @@ const filteredAgents =
   </select>
 </div>
 
+{/* Customer Name */}
+<div className="modal-form-group">
+  <label>Customer Name <span style={{ color: 'red' }}>*</span></label>
+  <input
+    type="text"
+    placeholder="Enter customer name"
+    value={editRequest.customerName || ''}
+    onChange={(e) =>
+      setEditRequest({ ...editRequest, customerName: e.target.value })
+    }
+  />
+</div>
+
+{/* Customer Phone */}
+<div className="modal-form-group">
+  <label>
+    Customer Phone <span style={{ color: "red" }}>*</span>
+  </label>
+
+  <input
+    className="phone-input"
+    type="tel"
+    placeholder="+63XXXXXXXXX or 09XXXXXXXXX"
+    value={editRequest.customerPhone || ""}
+    onChange={(e) =>
+      setEditRequest({ ...editRequest, customerPhone: e.target.value })
+    }
+  />
+</div>
+
 
           {/* <div className="modal-form-group">
             <label>Status</label>
@@ -676,25 +799,13 @@ const filteredAgents =
          <button 
   className="release-btn"
   onClick={() => {
-    const confirmRelease = window.confirm("Are you sure you want to mark this as Released?");
-
-    if (!confirmRelease) return; // CANCEL → stop here
-
-    const updated = {
-      ...editRequest,
-      status: "Completed"
-    };
-
-    axios.put(
-      `https://itrack-web-backend.onrender.com/api/updateRequest/${editRequest._id}`,
-      updated
-    )
-    .then(() => {
-      alert("Vehicle marked as Released!");
-      setEditRequest(null);  // close modal
-      fetchRequests();       // refresh table
-    })
-    .catch(err => console.error(err));
+    // Set customer data from edit request if available
+    setSmsData({
+      customerName: editRequest.customerName || '',
+      customerPhone: editRequest.customerPhone || ''
+    });
+    setReleasingRequestId(editRequest._id);
+    setSmsModalOpen(true);
   }}
 >
   Mark as Released
@@ -712,6 +823,74 @@ const filteredAgents =
         </div>
       </div>
        </div>
+    </div>
+  </div>
+)}
+
+
+
+
+{/* SMS Release Modal */}
+{smsModalOpen && (
+  <div className="profile-modal-overlay">
+    <div className="profile-modal-container">
+      <h2 className="profile-modal-title">SMS Release Notification</h2>
+
+      <div className="profile-modal-content">
+        <div className="profile-modal-form">
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Customer Name <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              className="profile-modal-input"
+              placeholder="Enter customer name"
+              value={smsData.customerName}
+              onChange={(e) =>
+                setSmsData({ ...smsData, customerName: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="profile-modal-field">
+            <label className="profile-modal-label">Customer Phone <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="tel"
+              className="profile-modal-input"
+              placeholder="+63917123456 or 09171234567"
+              value={smsData.customerPhone}
+              onChange={(e) =>
+                setSmsData({ ...smsData, customerPhone: e.target.value })
+              }
+            />
+            <small style={{ color: '#999', fontSize: '11px', marginTop: '3px' }}>Format: +63XXXXXXXXX or 09XXXXXXXXX</small>
+          </div>
+
+          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#e8f4f8', borderRadius: '5px' }}>
+            <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>
+              <strong>SMS Preview:</strong> Hi {smsData.customerName || 'Customer'}! Your {editRequest?.unitName || 'vehicle'} is ready for release. Contact your agent for details. -Isuzu Pasig
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="profile-modal-actions">
+        <button
+          className="profile-modal-btn profile-modal-btn-change-password"
+          onClick={handleSMSRelease}
+        >
+          Send SMS & Release
+        </button>
+        <button
+          className="profile-modal-btn profile-modal-btn-cancel"
+          onClick={() => {
+            setSmsModalOpen(false);
+            setReleasingRequestId(null);
+            setSmsData({ customerName: '', customerPhone: '' });
+          }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 )}

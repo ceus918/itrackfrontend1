@@ -1306,3 +1306,14 @@ margin-right: 15px;
   word-break: break-word;
   white-space: normal;   /* 🔥 Allows compression */
 }
+
+
+.phone-input {
+  font-size: 12px; /* input text size */
+}
+
+/* Placeholder styling */
+.phone-input::placeholder {
+  opacity: 0.6;       /* 0 to 1 only */
+  font-size: 12px;    /* placeholder size */
+}

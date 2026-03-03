@@ -179,7 +179,7 @@ const fetchSalesAgent = () => {
         {/* Header */}
         <header className="header" style={{ display: "flex", alignItems: "center" }}>
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
-          <h3 className="header-title1" style={{ marginLeft: 10 }}>Unit Allocation</h3>
+          <h3 className="header-title1" style={{ marginLeft: 10 }}>Agent Allocation</h3>
         </header>
 
         {/* Add button */}

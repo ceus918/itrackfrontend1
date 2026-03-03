@@ -209,9 +209,9 @@
 .fp-card {
   background: #fff;
   padding: 30px;
-  width: 400px;
+  width:400px;
   max-width: 90%;
-  border-radius: 16px;
+  border-radius:7px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.2);
   text-align: center;
   animation: fp-slideUp 0.3s ease;
@@ -234,7 +234,7 @@
   width: 350px;
   padding: 12px;
   border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border-radius: 4px;
   margin-bottom: 20px;
   font-size: 0.95rem;
   transition: 0.2s;
@@ -258,7 +258,7 @@
 
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
   transition: 0.3s;
@@ -272,7 +272,8 @@
   background: #f3f4f6;
   color: #374151;
   border: none;
-  border-radius: 10px;
+  
+  border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
   transition: 0.3s;

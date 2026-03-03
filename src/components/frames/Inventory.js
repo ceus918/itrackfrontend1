@@ -981,15 +981,19 @@ const fetchSalesAgent = () => {
           </div>
 
           {/* ------------------ CONDUCTION NUMBER ------------------ */}
-          <div className="modal-form-group">
+         <div className="modal-form-group">
             <label>
               Conduction Number <span style={{ color: "red" }}>*</span>
             </label>
             <input
               type="text"
+              maxLength={8}
               value={newStock.unitId}
               onChange={(e) =>
-                setNewStock({ ...newStock, unitId: e.target.value })
+                setNewStock({
+                  ...newStock,
+                  unitId: e.target.value.toUpperCase()
+                })
               }
               required
             />

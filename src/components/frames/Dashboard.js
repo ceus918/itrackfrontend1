@@ -691,97 +691,87 @@ const handleChangePassword = () => {
           <div className="dashboard-grid">
   {/* 🥧 Pie Chart */}
   
-  <div className="dashboard-item">
-    <h4 className="section-title">Stocks Overview</h4>
+<div className="dashboard-item stocks-overview-container">
+    <div className="stocks-overview-header">
+
+    
+    </div>
+
     {stockData.length > 0 ? (
-  <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-    alignItems: "center"
-  }}
->
+      <div className="stocks-overview-content">
+        {/* Left Side - Labels */}
+        <div className="stocks-labels-container">
+          <p className="stocks-labels-header">Vehicle Models</p>
+          <div className="stocks-labels-list">
+            {stockData.map((item, index) => {
+              const totalValue = stockData.reduce((sum, d) => sum + d.value, 0);
+              const percentage = ((item.value / totalValue) * 100).toFixed(0);
+              return (
+                <div key={index} className="stocks-label-row">
+                  <div className="stocks-label-content">
+                    <div
+                      className="stocks-color-dot"
+                      style={{
+                        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                      }}
+                    />
+                    <span className="stocks-label-text">{item.name}:</span>
+                  </div>
+                  <div className="stocks-label-stats">
+                    <span className="stocks-count-text">{item.value}</span>
+                      
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-    {/* 🥧 Pie Chart (Left) */}
-    <div style={{ width: "100%", height: "260px" }}>
+        {/* Separator */}
+        <div className="stocks-separator" />
 
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={stockData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={90}
-            innerRadius={35} 
-            labelLine={false}
-          >
-            {stockData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-
-    {/* 📊 Legend (Right) */}
-   <div
-  style={{
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-  }}
->
-
-      {stockData.map((item, index) => (
-  <div
-    key={index}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      marginBottom: "6px",
-      fontSize: "14px",
-                  // ⭐ NEW → makes spacing consistent and tighter
-    }}
-  >
-    <div
-      style={{
-        width: "12px",
-        height: "12px",
-        borderRadius: "50%",
-        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-      }}
-    ></div>
-
-    <span style={{ flex: 1, color: "#374151", fontWeight: "500" }}>
-      {item.name}
-    </span>
-
-    <span style={{ color: "#111827", fontWeight: "600",marginRight: "100px" }}>
-      {item.value}
-    </span>
+        {/* Right Side - Pie Chart */}
+        <div className="stocks-chart-container">
+          <div className="stocks-chart-wrapper">
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={stockData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={85}
+                  innerRadius={55}
+                  paddingAngle={0}
+                  stroke="none"
+                  strokeWidth={0}
+                  labelLine={false}
+                >
+                  {stockData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="stocks-center-label">
+             
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <p style={{ textAlign: "center", color: "#888", padding: "40px 20px" }}>
+        No stock data available
+      </p>
+    )}
   </div>
-))}
-
-    </div>
-  </div>
-) : (
-  <p style={{ textAlign: "center", color: "#888" }}>
-    No stock data available
-  </p>
-)}
 
 
-
-
-  </div>
 
   {/* 🚗 Table 1: In Progress Preparations */}
   <div className="dashboard-item">
