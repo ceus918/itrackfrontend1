@@ -298,3 +298,65 @@
   from { transform: translateY(40px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+@media (max-width: 480px) {
+  .login-card {
+    max-width: 95%;
+    padding: 24px 16px;
+    width: 100%;
+  }
+
+  .login-form {
+    margin-top: 30px;
+  }
+
+  .login-form input {
+    max-width: 100%;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .login-form label {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .login-form button {
+    max-width: 100%;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .fp-card {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .fp-input {
+    width: 100%;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .fp-buttons {
+    flex-direction: column;
+  }
+
+  .fp-btn-primary,
+  .fp-btn-secondary {
+    width: 100%;
+  }
+
+  .logo-title-row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .login-logo img {
+    width: 35px;
+  }
+
+  .logo-title-row h1 {
+    font-size: 18px;
+  }
+}

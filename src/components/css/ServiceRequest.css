@@ -1317,3 +1317,97 @@ margin-right: 15px;
   opacity: 0.6;       /* 0 to 1 only */
   font-size: 12px;    /* placeholder size */
 }
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal,
+  .modal2 {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 95vh;
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .modal h3 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .modal-form {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-form-group {
+    flex: 1 1 100%;
+  }
+
+  .modal input,
+  .modal select,
+  .modal2 input,
+  .modal2 select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .modal-buttons button {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .search-container input {
+    width: 100%;
+  }
+
+  .search-container button {
+    width: 100%;
+  }
+
+  table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+
+  table th,
+  table td {
+    padding: 10px 6px;
+    white-space: nowrap;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modaltitle {
+    margin-left: 0;
+  }
+
+  .checkbox-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .big-checkbox {
+    width: 18px;
+    height: 18px;
+  }
+}

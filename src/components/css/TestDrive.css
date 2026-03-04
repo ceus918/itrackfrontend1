@@ -280,3 +280,80 @@ margin-right: 15px;
 .testdrive-btn-container {
   margin-left: auto;   /* pushes button fully right */
 }
+
+@media (max-width: 480px) {
+  .testdrive-content {
+    padding: 12px;
+  }
+
+  .testdrive-content h2 {
+    font-size: 18px;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .testdrive-modal {
+    padding: 12px;
+    margin-top: 12px;
+  }
+
+  .testdrive-form {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .testdrive-form-group {
+    flex: 1 1 100%;
+  }
+
+  .testdrive-form-group input,
+  .testdrive-form-group select {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .testdrive-btn,
+  .testdrive-btn2 {
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    margin-left: 0;
+  }
+
+  .testdrive-table-container {
+    padding: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .testdrive-table-container table {
+    font-size: 12px;
+    min-width: 500px;
+  }
+
+  .testdrive-table-container table th,
+  .testdrive-table-container table td {
+    padding: 8px 6px;
+    white-space: nowrap;
+  }
+
+  .testdrive-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .testdrive-title {
+    font-size: 16px;
+  }
+
+  .testdrive-btn-container {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .testdrive-loggedinuser {
+    font-size: 12px;
+    margin-right: 8px;
+  }
+}

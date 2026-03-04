@@ -225,5 +225,49 @@ body {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+@media (max-width: 480px) {
+  .sidebar {
+    width: 70px;
+    padding: 15px 8px;
+  }
+
+  .sidebar ul {
+    margin-left: 0;
+    margin-top: 20px;
+  }
+
+  .sidebar li {
+    padding: 8px 0;
+  }
+
+  .menu-link {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .menu-link span {
+    display: none;
+  }
+
+  .menu-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 0;
+  }
+
+  .sign-out-button {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+    margin: 0 auto;
+  }
+
+  .signouticon {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+}
+
 
 

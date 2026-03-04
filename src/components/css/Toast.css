@@ -95,5 +95,16 @@
     right: 10px;
     left: 10px;
     max-width: none;
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  .toast-icon {
+    min-width: 20px;
+    font-size: 14px;
+  }
+
+  .toast-message {
+    line-height: 1.3;
   }
 }
