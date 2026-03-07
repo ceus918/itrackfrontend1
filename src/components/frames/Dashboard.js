@@ -702,7 +702,7 @@ const handleChangePassword = () => {
         {/* Left Side - Labels */}
         <div className="stocks-labels-container">
           <p className="stocks-labels-header">Vehicle Models</p>
-          <div className="stocks-labels-list">
+          <div className="stocks-labels-list">                            
             {stockData.map((item, index) => {
               const totalValue = stockData.reduce((sum, d) => sum + d.value, 0);
               const percentage = ((item.value / totalValue) * 100).toFixed(0);

@@ -37,7 +37,7 @@ const AuditTrail = () => {
   if (loading) return <div>Loading audit trail...</div>;
 
   // Utility: mask sensitive fields
-  const maskSensitiveFields = (obj) => {
+const maskSensitiveFields = (obj) =>    {
     if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
     
     const sensitiveFields = ['password', 'resetPasswordToken', 'resetPasswordExpires'];

@@ -134,6 +134,8 @@ const fileInputRef = React.useRef(null);
 };
 
 const [openDropdownId, setOpenDropdownId] = useState(null);
+const [hoveredRowId, setHoveredRowId] = useState(null);
+
 const toggleDropdown = (id) => {
   setOpenDropdownId(prevId => (prevId === id ? null : id));
 };
@@ -1208,21 +1210,24 @@ const fetchUsers = () => {
           </tr>
         ) : (
           testDrives.map(schedule => (
-            <tr key={schedule._id}>
+            <tr 
+              key={schedule._id}
+        
+            >
               <td>{getVehicleInfo(schedule.vehicleId)}</td>
               <td>{schedule.date}</td>
               <td>{new Date(`1970-01-01T${schedule.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</td>
               <td>{schedule.name}</td>
               <td>{schedule.contact}</td>
               <td>
-                <div className="testdrive-dropdown">
-                  <button className="testdrive-dropbtn" onClick={() => toggleDropdown(schedule._id)}>⋮</button>
-                  {openDropdownId === schedule._id && (
-                    <div className="testdrive-dropdown-menu">
-                      <button onClick={() => handleDelete(schedule._id)}>Delete</button>
-                    </div>
-                  )}
-                </div>
+
+                  <button 
+                    className="testdrive-delete-btn" 
+                    onClick={() => handleDelete(schedule._id)}
+                  >
+                    Delete
+                  </button>
+                
               </td>
             </tr>
           ))

@@ -190,6 +190,21 @@
   background-color: #f5f5f5;
 }
 
+.testdrive-delete-btn {
+  background-color: #f3f3f3;
+  color: rgb(0, 0, 0);
+  border: none;
+
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+
 .loggedinuser{
 margin-right: 15px;
 }
